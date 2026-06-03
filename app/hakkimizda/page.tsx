@@ -76,12 +76,12 @@ export default function AboutPage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {VALUES.map((v, i) => (
               <FadeIn key={v.title} delay={i * 0.06} y={20}>
-                <div className="h-full rounded-3xl glass-dark p-6">
+                <div className="h-full rounded-3xl bg-gradient-to-br from-bordo-500 via-bordo-700 to-bordo-dark border border-rose-gold/25 shadow-card p-6">
                   <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-gold-gradient text-coffee">
                     <v.icon size={20} strokeWidth={1.5} />
                   </span>
-                  <h3 className="mt-4 font-display text-xl text-coffee">{v.title}</h3>
-                  <p className="mt-2 text-sm text-coffee/70 leading-relaxed">{v.text}</p>
+                  <h3 className="mt-4 font-display text-xl text-cream">{v.title}</h3>
+                  <p className="mt-2 text-sm text-cream/70 leading-relaxed">{v.text}</p>
                 </div>
               </FadeIn>
             ))}
@@ -101,12 +101,12 @@ export default function AboutPage() {
               { year: "Bugün", title: "Butik dokunuş", text: "Aynı gün teslimat ve premium ambalaj ile her ana zarafet katıyoruz." },
             ].map((m, i) => (
               <FadeIn key={m.title} delay={i * 0.08} y={20}>
-                <div className="h-full rounded-3xl glass-dark p-7">
-                  <span className="font-display text-3xl text-bordo">
+                <div className="h-full rounded-3xl bg-gradient-to-br from-bordo-500 via-bordo-700 to-bordo-dark border border-rose-gold/25 shadow-card p-7">
+                  <span className="font-display text-3xl text-rose-goldLight">
                     {m.year}
                   </span>
-                  <h3 className="mt-3 font-display text-xl text-coffee">{m.title}</h3>
-                  <p className="mt-2 text-sm text-coffee/70 leading-relaxed">{m.text}</p>
+                  <h3 className="mt-3 font-display text-xl text-cream">{m.title}</h3>
+                  <p className="mt-2 text-sm text-cream/70 leading-relaxed">{m.text}</p>
                 </div>
               </FadeIn>
             ))}
