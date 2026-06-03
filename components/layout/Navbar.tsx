@@ -4,13 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, MessageCircle } from "lucide-react";
+import { Menu, X, UserPlus, LogIn } from "lucide-react";
 import BrandMark from "./BrandMark";
 import Button from "@/components/ui/Button";
 import CartButton from "@/components/cart/CartButton";
 import WishlistIconLink from "@/components/wishlist/WishlistIconLink";
 import SearchButton from "@/components/search/SearchButton";
-import { whatsappLink } from "@/lib/constants";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -112,17 +111,16 @@ export default function Navbar() {
           <SearchButton />
           <WishlistIconLink />
           <CartButton />
-          <a
-            href={whatsappLink()}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="WhatsApp ile iletişime geç"
-          >
-            <Button variant="gold" size="sm" className="!h-10 !px-5">
-              <MessageCircle size={16} strokeWidth={1.7} />
-              <span>WhatsApp Sipariş</span>
+          <Link href="/giris" className="ml-1">
+            <Button variant="outline-light" size="sm" className="!h-10 !px-4">
+              <span>Üye Girişi</span>
             </Button>
-          </a>
+          </Link>
+          <Link href="/uye-ol">
+            <Button variant="gold" size="sm" className="!h-10 !px-5">
+              <span>Üye Ol</span>
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile cart + toggle area */}
@@ -202,20 +200,25 @@ export default function Navbar() {
                 </motion.div>
               ))}
 
-              <motion.a
-                href={whatsappLink()}
-                target="_blank"
-                rel="noopener noreferrer"
+              <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.45, duration: 0.45 }}
-                className="mt-8"
+                className="mt-8 flex flex-col gap-3"
               >
-                <Button variant="gold" size="lg" className="w-full">
-                  <MessageCircle size={18} strokeWidth={1.7} />
-                  <span>WhatsApp&apos;tan Sipariş Ver</span>
-                </Button>
-              </motion.a>
+                <Link href="/uye-ol" onClick={() => setOpen(false)}>
+                  <Button variant="gold" size="lg" className="w-full">
+                    <UserPlus size={18} strokeWidth={1.7} />
+                    <span>Üye Ol</span>
+                  </Button>
+                </Link>
+                <Link href="/giris" onClick={() => setOpen(false)}>
+                  <Button variant="outline-light" size="lg" className="w-full">
+                    <LogIn size={18} strokeWidth={1.7} />
+                    <span>Üye Girişi</span>
+                  </Button>
+                </Link>
+              </motion.div>
             </motion.nav>
           </motion.div>
         )}
