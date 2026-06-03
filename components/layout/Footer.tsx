@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Instagram, MapPin, Phone, Mail, Clock } from "lucide-react";
 import BrandMark from "./BrandMark";
-import NewsletterForm from "@/components/forms/NewsletterForm";
+import NewsletterSection from "@/components/forms/NewsletterSection";
 import { SITE, whatsappLink } from "@/lib/constants";
 
 const FOOTER_LINKS = [
@@ -41,22 +41,8 @@ export default function Footer() {
       {/* Üst rose-gold şerit */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-gold/60 to-transparent" />
 
-      {/* Newsletter şeridi */}
-      <div className="container pt-16 md:pt-20">
-        <div className="rounded-3xl bg-gradient-to-br from-bordo-700 to-wine p-8 md:p-12 grid md:grid-cols-2 gap-8 items-center border border-rose-gold/20">
-          <div>
-            <span className="eyebrow">Bülten</span>
-            <h3 className="mt-2 font-display text-3xl md:text-4xl text-cream">
-              Yeni koleksiyonlardan ilk siz haberdar olun
-            </h3>
-            <p className="mt-2 text-sm text-cream/70 leading-relaxed">
-              Sezonsal koleksiyonlar, özel kampanyalar ve atölye haberleri için
-              ayda bir e-postamızı alın.
-            </p>
-          </div>
-          <NewsletterForm />
-        </div>
-      </div>
+      {/* Newsletter şeridi — yalnızca üye olmayanlara gösterilir */}
+      <NewsletterSection />
 
       <div className="container py-16 md:py-20">
         <div className="grid gap-12 md:grid-cols-12">
