@@ -153,15 +153,38 @@ export default function Footer() {
         </div>
 
         {/* Alt bar */}
-        <div className="mt-14 pt-8 border-t border-cream/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-cream/55">
+        <div className="mt-14 pt-8 border-t border-cream/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-cream/55">
           <span>
             © {new Date().getFullYear()} Floria Garden. Tüm hakları saklıdır.
           </span>
-          <span className="tracking-wider2 uppercase text-rose-gold/80">
-            Flowers and Coffee
-          </span>
+          <a
+            href="https://www.instagram.com/bariscreativedesign"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Tasarım ve geliştirme: BarışCreativeDesign — Instagram"
+            className="group inline-flex items-center gap-1.5 text-cream/55 hover:text-rose-goldLight transition-colors"
+          >
+            <span aria-hidden className="text-rose-gold/70 group-hover:text-rose-goldLight transition-colors">
+              ✦
+            </span>
+            <span>
+              Tasarım:{" "}
+              <strong className="font-medium text-rose-gold/90 group-hover:text-rose-goldLight">
+                BarışCreativeDesign
+              </strong>
+            </span>
+          </a>
         </div>
       </div>
+
+      {/* Gizli imza — kaynak kodda görünür, kullanıcıya görünmez */}
+      <div
+        aria-hidden
+        dangerouslySetInnerHTML={{
+          __html:
+            "<!-- Tasarım & Geliştirme: BarışCreativeDesign · instagram.com/bariscreativedesign -->",
+        }}
+      />
     </footer>
   );
 }
