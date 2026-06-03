@@ -36,7 +36,9 @@
       radial-gradient(circle at 100% 100%, rgba(142, 31, 63, 0.04), transparent 34%);
     background-repeat: repeat-y, repeat-y, no-repeat, no-repeat;
     background-position: right 8px top, left 8px top, 0 0, 100% 100%;
-    background-attachment: fixed, fixed, fixed, fixed;
+    /* scroll (fixed değil) → kaydırmada yeniden çizim yapmaz, çok daha akıcı.
+       Yapraklar repeat-y ile yine boydan boya uzanır. */
+    background-attachment: scroll, scroll, scroll, scroll;
     background-size: 130px 320px, 130px 320px, auto, auto;
     /* Üstte banner + altta mobil bar için boşluk */
     padding-top: var(--banner-h);

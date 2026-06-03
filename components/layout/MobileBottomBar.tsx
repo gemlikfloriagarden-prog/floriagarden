@@ -15,7 +15,7 @@ export default function MobileBottomBar() {
       initial={{ y: 60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.8, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-bordo-dark/95 backdrop-blur-lg border-t border-rose-gold/20 shadow-card"
+      className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-bordo-dark border-t border-rose-gold/20 shadow-card"
       aria-label="Hızlı erişim çubuğu"
     >
       <div className="grid grid-cols-4 h-16">

@@ -70,7 +70,7 @@ export default function Navbar() {
         "fixed inset-x-0 z-50",
         // Banner görünürse banner-h kadar aşağıdan başlar
         "top-[var(--banner-h,0px)] transition-[top] duration-500 ease-silk",
-        "bg-bordo-dark/95 backdrop-blur-md",
+        "bg-bordo-dark",
         "border-b",
         scrolled
           ? "border-rose-gold/20 shadow-card"
