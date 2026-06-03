@@ -119,10 +119,7 @@ export default function ContactPage() {
                     rel="noopener noreferrer"
                     className="flex-1"
                   >
-                    <Button
-                      size="md"
-                      className="w-full !bg-transparent !text-coffee !border-2 !border-coffee/40 hover:!bg-coffee hover:!text-cream hover:!border-coffee"
-                    >
+                    <Button size="md" className="w-full !text-cream">
                       <Instagram size={16} strokeWidth={1.8} />
                       <span>Instagram</span>
                     </Button>
