@@ -55,7 +55,7 @@ export default function ProductCard({ product, index }: Props) {
     <motion.article
       whileHover={{ y: -6 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative h-full flex flex-col overflow-hidden rounded-2xl bg-white border border-rose-gold/20 hover:border-bordo/30 shadow-soft hover:shadow-card transition-all duration-500"
+      className="group relative h-full flex flex-col overflow-hidden rounded-2xl bg-white group-hover:bg-bordo hover:bg-bordo border border-rose-gold/20 hover:border-bordo shadow-soft hover:shadow-card transition-[background-color,border-color,box-shadow] duration-500"
     >
       {/* Görsel — botanik lookbook */}
       <div className="relative aspect-[4/5] overflow-hidden">
@@ -71,10 +71,15 @@ export default function ProductCard({ product, index }: Props) {
           >
             <BotanicalArt seed={product.id} label={product.name} />
           </motion.div>
+          {/* Hover'da bordo yıkaması */}
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-br from-bordo-500 via-bordo-700 to-bordo-dark opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+          />
         </Link>
 
         {/* Lookbook numarası */}
-        <span className="absolute top-4 left-4 z-10 font-display text-sm tracking-wide text-bordo/70 pointer-events-none">
+        <span className="absolute top-4 left-4 z-10 font-display text-sm tracking-wide text-bordo/70 group-hover:text-cream/90 transition-colors duration-500 pointer-events-none">
           No. {no}
         </span>
 
@@ -107,19 +112,19 @@ export default function ProductCard({ product, index }: Props) {
       </div>
 
       {/* İçerik — sade */}
-      <div className="flex flex-1 flex-col p-5">
+      <div className="relative flex flex-1 flex-col p-5">
         <Link href={`/urun/${product.slug}`}>
-          <h3 className="font-display text-xl text-coffee leading-snug hover:text-bordo transition-colors">
+          <h3 className="font-display text-xl text-coffee group-hover:text-cream leading-snug transition-colors duration-500">
             {product.name}
           </h3>
         </Link>
-        <p className="mt-1.5 text-sm text-coffee/55 leading-relaxed line-clamp-1">
+        <p className="mt-1.5 text-sm text-coffee/55 group-hover:text-cream/70 leading-relaxed line-clamp-1 transition-colors duration-500">
           {product.shortDescription}
         </p>
 
         {/* Alt satır: fiyat + aksiyonlar */}
-        <div className="mt-5 pt-4 border-t border-rose-gold/15 flex items-center justify-between gap-3">
-          <span className="font-display text-2xl text-bordo">
+        <div className="mt-5 pt-4 border-t border-rose-gold/15 group-hover:border-cream/20 flex items-center justify-between gap-3 transition-colors duration-500">
+          <span className="font-display text-2xl text-bordo group-hover:text-rose-goldLight transition-colors duration-500">
             {formatPrice(product.price)}
           </span>
 
@@ -129,7 +134,7 @@ export default function ProductCard({ product, index }: Props) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${product.name} için WhatsApp'tan sor`}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-rose-gold/30 text-bordo hover:bg-cream transition-colors"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-rose-gold/30 text-bordo group-hover:border-cream/40 group-hover:text-cream hover:!bg-cream/15 transition-colors duration-300"
             >
               <MessageCircle size={16} strokeWidth={1.7} />
             </a>
@@ -142,7 +147,7 @@ export default function ProductCard({ product, index }: Props) {
                 "inline-flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 disabled:opacity-40 disabled:pointer-events-none",
                 added
                   ? "bg-sage-deep text-cream"
-                  : "bg-bordo-gradient text-cream shadow-soft hover:shadow-glow hover:brightness-110",
+                  : "bg-bordo-gradient text-cream group-hover:bg-rose-gold-gradient group-hover:text-coffee shadow-soft hover:shadow-glow hover:brightness-110",
               )}
             >
               {added ? (
