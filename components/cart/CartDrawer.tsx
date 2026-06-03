@@ -5,6 +5,7 @@ import Link from "next/link";
 import { X, Plus, Minus, Trash2, MessageCircle, ShoppingBag } from "lucide-react";
 import { useCart } from "./CartProvider";
 import CouponInput from "./CouponInput";
+import CartItemDetails from "./CartItemDetails";
 import FloralPlaceholder from "@/components/ui/FloralPlaceholder";
 import Button from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils/format";
@@ -143,11 +144,7 @@ export default function CartDrawer() {
                           </button>
                         </div>
 
-                        {item.cardNote && (
-                          <p className="text-[0.7rem] text-coffee/55 italic line-clamp-1">
-                            &ldquo;{item.cardNote}&rdquo;
-                          </p>
-                        )}
+                        <CartItemDetails item={item} />
 
                         <div className="flex items-center justify-between mt-auto">
                           <div className="inline-flex items-center gap-1 rounded-full border border-rose-gold/25 bg-cream">

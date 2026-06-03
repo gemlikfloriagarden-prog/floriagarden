@@ -6,6 +6,7 @@ import { Trash2, Plus, Minus, ShoppingBag, MessageCircle, Truck, ShieldCheck } f
 import Button from "@/components/ui/Button";
 import FloralPlaceholder from "@/components/ui/FloralPlaceholder";
 import CouponInput from "./CouponInput";
+import CartItemDetails from "./CartItemDetails";
 import { useCart } from "./CartProvider";
 import { formatPrice } from "@/lib/utils/format";
 import { whatsappLink } from "@/lib/constants";
@@ -125,19 +126,7 @@ export default function CartPageClient() {
                 </button>
               </div>
 
-              {(item.cardNote || item.deliveryDate || item.giftWrap !== "standart") && (
-                <div className="text-xs text-coffee/60 flex flex-wrap gap-x-4 gap-y-1">
-                  {item.cardNote && (
-                    <span className="italic">&ldquo;{item.cardNote}&rdquo;</span>
-                  )}
-                  {item.deliveryDate && (
-                    <span>📅 {item.deliveryDate} · {item.deliverySlot}</span>
-                  )}
-                  {item.giftWrap && item.giftWrap !== "standart" && (
-                    <span>🎁 {item.giftWrap === "premium" ? "Premium paket" : "Lüks kutu"}</span>
-                  )}
-                </div>
-              )}
+              <CartItemDetails item={item} />
 
               <div className="flex items-center justify-between mt-auto">
                 <div className="inline-flex items-center rounded-full border border-rose-gold/25 bg-cream/5">
