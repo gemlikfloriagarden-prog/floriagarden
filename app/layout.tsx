@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
-import dynamic from "next/dynamic";
-import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { ToastProvider } from "@/components/toast/ToastProvider";
 import { WishlistProvider } from "@/components/wishlist/WishlistProvider";
@@ -10,28 +9,6 @@ import { SearchProvider } from "@/components/search/SearchProvider";
 import { Analytics } from "@vercel/analytics/react";
 import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
 import "./globals.css";
-
-// Performans: non-critical layout bileşenleri lazy yüklenir, ilk paint'i etkilemez.
-// SSR de devre dışı — sadece istemcide gerekiyor.
-const SeasonalBanner = dynamic(
-  () => import("@/components/sections/SeasonalBanner"),
-  { ssr: false },
-);
-const CartDrawer = dynamic(() => import("@/components/cart/CartDrawer"), {
-  ssr: false,
-});
-const FloatingWhatsApp = dynamic(
-  () => import("@/components/layout/FloatingWhatsApp"),
-  { ssr: false },
-);
-const MobileBottomBar = dynamic(
-  () => import("@/components/layout/MobileBottomBar"),
-  { ssr: false },
-);
-const CookieBanner = dynamic(
-  () => import("@/components/layout/CookieBanner"),
-  { ssr: false },
-);
 
 // Performans: yalnızca kullandığımız ağırlıkları yükle (4 → 2)
 const cormorant = Cormorant_Garamond({
@@ -103,8 +80,7 @@ export default function RootLayout({
           <WishlistProvider>
             <CartProvider>
               <SearchProvider>
-              <SeasonalBanner />
-              <Navbar />
+              <PublicHeader />
               <a
                 href="#main-content"
                 className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-full focus:bg-rose-gold focus:text-coffee focus:shadow-glow"
@@ -112,11 +88,9 @@ export default function RootLayout({
                 İçeriğe atla
               </a>
               <main id="main-content" className="flex-1">{children}</main>
-              <Footer />
-              <CartDrawer />
-              <FloatingWhatsApp />
-              <MobileBottomBar />
-              <CookieBanner />
+              <PublicFooter>
+                <Footer />
+              </PublicFooter>
               </SearchProvider>
             </CartProvider>
           </WishlistProvider>
