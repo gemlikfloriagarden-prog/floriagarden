@@ -16,7 +16,7 @@ export default function CategoryCard({ category }: Props) {
     <motion.div
       whileHover={{ y: -6 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative h-full flex flex-col overflow-hidden rounded-3xl bg-white border border-rose-gold/20 shadow-soft hover:shadow-card hover:border-rose-gold/45 transition-all duration-500"
+      className="group relative h-full flex flex-col overflow-hidden rounded-3xl bg-white hover:bg-bordo border border-rose-gold/20 hover:border-bordo shadow-soft hover:shadow-card transition-all duration-500"
     >
       <Link
         href={`/koleksiyon/${category.slug}`}
@@ -46,26 +46,26 @@ export default function CategoryCard({ category }: Props) {
 
           {/* Alt yumuşak gölge — görsel ile içerik geçişi */}
           <div
-            className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white/30 to-transparent"
+            className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white/30 to-transparent group-hover:from-bordo/40 transition-colors duration-500"
             aria-hidden
           />
         </div>
 
-        {/* İçerik alanı — beyaz */}
+        {/* İçerik alanı — hover'da bordo temaya döner */}
         <div className="flex flex-1 flex-col p-5 md:p-6">
-          <h3 className="font-display text-xl md:text-2xl text-coffee leading-tight group-hover:text-bordo transition-colors duration-300">
+          <h3 className="font-display text-xl md:text-2xl text-coffee group-hover:text-cream leading-tight transition-colors duration-300">
             {category.name}
           </h3>
-          <p className="mt-2 text-sm text-coffee/60 leading-relaxed line-clamp-2">
+          <p className="mt-2 text-sm text-coffee/60 group-hover:text-cream/75 leading-relaxed line-clamp-2 transition-colors duration-300">
             {category.description}
           </p>
 
-          <div className="mt-5 pt-4 border-t border-rose-gold/15 flex items-center justify-between">
-            <span className="text-xs uppercase tracking-wider2 text-rose-goldDark group-hover:text-bordo transition-colors">
+          <div className="mt-5 pt-4 border-t border-rose-gold/15 group-hover:border-cream/20 flex items-center justify-between transition-colors duration-300">
+            <span className="text-xs uppercase tracking-wider2 text-rose-goldDark group-hover:text-cream transition-colors duration-300">
               Keşfet
             </span>
             <motion.span
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rose-gold/30 text-rose-goldDark group-hover:bg-bordo group-hover:text-cream group-hover:border-bordo transition-all duration-300"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rose-gold/30 text-rose-goldDark group-hover:bg-cream group-hover:text-bordo group-hover:border-cream transition-all duration-300"
               whileHover={{ rotate: 45 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             >
