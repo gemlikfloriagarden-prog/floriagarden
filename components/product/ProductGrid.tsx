@@ -92,125 +92,111 @@ export default function ProductGrid({ products, showToolbar = true }: Props) {
   return (
     <div className="flex flex-col gap-8">
       {showToolbar && (
-        <div className="rounded-3xl border border-rose-gold/20 bg-white shadow-soft overflow-hidden">
-          {/* Üst satır: sonuç sayısı + sıralama */}
-          <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5">
-            <span className="text-sm text-coffee/65">
-              <strong className="text-bordo font-semibold tabular-nums">
-                {visible.length}
-              </strong>{" "}
-              ürün listeleniyor
-            </span>
+        <div className="rounded-3xl border border-rose-gold/20 bg-white shadow-soft px-4 sm:px-5 py-3.5 flex flex-wrap items-center gap-x-3 gap-y-3">
+          {/* Sonuç sayısı */}
+          <span className="text-sm text-coffee/65 whitespace-nowrap">
+            <strong className="text-bordo font-semibold tabular-nums">
+              {visible.length}
+            </strong>{" "}
+            ürün
+          </span>
 
-            <div className="relative flex items-center gap-2">
-              <ArrowUpDown
-                size={15}
-                strokeWidth={1.6}
-                className="text-rose-goldDark hidden sm:block"
-                aria-hidden
-              />
-              <label
-                htmlFor="sort"
-                className="text-coffee/55 text-sm hidden sm:block"
-              >
-                Sırala:
-              </label>
-              <div className="relative">
-                <select
-                  id="sort"
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as SortKey)}
-                  aria-label="Ürünleri sırala"
-                  className="appearance-none cursor-pointer rounded-full border border-rose-gold/30 bg-cream-soft pl-4 pr-9 h-10 text-sm text-coffee font-medium hover:border-rose-gold focus:outline-none focus:border-rose-gold focus:ring-2 focus:ring-rose-gold/20 transition-colors"
-                  style={{ colorScheme: "light" }}
+          {/* Dikey ayraç */}
+          <span className="hidden sm:block h-5 w-px bg-rose-gold/20" aria-hidden />
+
+          {/* Fiyat etiketi */}
+          <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider2 text-rose-goldDark">
+            <Tag size={13} strokeWidth={1.7} aria-hidden />
+            Fiyat
+          </span>
+
+          {/* Fiyat pill'leri */}
+          <div className="flex flex-wrap items-center gap-2">
+            {PRICE_FILTERS.map((f) => {
+              const active = price === f.key;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setPrice(f.key)}
+                  aria-pressed={active}
+                  className={cn(
+                    "inline-flex items-center rounded-full px-3.5 h-8 text-xs font-medium tracking-wide transition-all duration-200",
+                    active
+                      ? "bg-rose-gold-gradient text-coffee border border-transparent shadow-soft"
+                      : "border border-rose-gold/25 bg-white text-coffee/70 hover:border-rose-gold hover:text-coffee",
+                  )}
                 >
-                  {SORT_OPTIONS.map((o) => (
-                    <option key={o.key} value={o.key}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <ArrowUpDown
-                  size={13}
-                  strokeWidth={1.8}
-                  className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-rose-goldDark"
-                  aria-hidden
-                />
-              </div>
-            </div>
+                  {f.label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Ayraç */}
-          <div className="h-px bg-rose-gold/15" aria-hidden />
+          {/* Stok */}
+          <button
+            type="button"
+            onClick={() => setInStockOnly((v) => !v)}
+            aria-pressed={inStockOnly}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3.5 h-8 text-xs font-medium tracking-wide transition-all duration-200",
+              inStockOnly
+                ? "bg-bordo text-cream border border-transparent shadow-soft"
+                : "border border-rose-gold/25 bg-white text-coffee/70 hover:border-rose-gold hover:text-coffee",
+            )}
+          >
+            <PackageCheck size={14} strokeWidth={1.7} aria-hidden />
+            Sadece stoktakiler
+          </button>
 
-          {/* Alt satır: filtreler */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-3 px-4 sm:px-5 py-3.5">
-            {/* Fiyat */}
-            <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider2 text-rose-goldDark">
-              <Tag size={13} strokeWidth={1.7} aria-hidden />
-              Fiyat
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              {PRICE_FILTERS.map((f) => {
-                const active = price === f.key;
-                return (
-                  <button
-                    key={f.key}
-                    type="button"
-                    onClick={() => setPrice(f.key)}
-                    aria-pressed={active}
-                    className={cn(
-                      "inline-flex items-center rounded-full px-3.5 h-8 text-xs font-medium tracking-wide transition-all duration-200",
-                      active
-                        ? "bg-rose-gold-gradient text-coffee border border-transparent shadow-soft"
-                        : "border border-rose-gold/25 bg-white text-coffee/70 hover:border-rose-gold hover:text-coffee",
-                    )}
-                  >
-                    {f.label}
-                  </button>
-                );
-              })}
-            </div>
+          {/* Sıfırla */}
+          <AnimatePresence>
+            {filtersActive && (
+              <motion.button
+                type="button"
+                onClick={resetFilters}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+                className="inline-flex items-center gap-1.5 text-xs text-coffee/50 hover:text-bordo transition-colors"
+              >
+                <RotateCcw size={13} strokeWidth={1.7} aria-hidden />
+                Temizle
+              </motion.button>
+            )}
+          </AnimatePresence>
 
-            {/* İnce dikey ayraç (geniş ekran) */}
-            <span
-              className="hidden sm:block h-5 w-px bg-rose-gold/20 mx-1"
-              aria-hidden
-            />
-
-            {/* Stok */}
-            <button
-              type="button"
-              onClick={() => setInStockOnly((v) => !v)}
-              aria-pressed={inStockOnly}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3.5 h-8 text-xs font-medium tracking-wide transition-all duration-200",
-                inStockOnly
-                  ? "bg-bordo text-cream border border-transparent shadow-soft"
-                  : "border border-rose-gold/25 bg-white text-coffee/70 hover:border-rose-gold hover:text-coffee",
-              )}
+          {/* Sıralama — sağa yaslı */}
+          <div className="relative flex items-center gap-2 ml-auto">
+            <label
+              htmlFor="sort"
+              className="text-coffee/55 text-sm hidden md:block whitespace-nowrap"
             >
-              <PackageCheck size={14} strokeWidth={1.7} aria-hidden />
-              Sadece stoktakiler
-            </button>
-
-            {/* Sıfırla */}
-            <AnimatePresence>
-              {filtersActive && (
-                <motion.button
-                  type="button"
-                  onClick={resetFilters}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
-                  className="inline-flex items-center gap-1.5 text-xs text-coffee/50 hover:text-bordo transition-colors ml-auto"
-                >
-                  <RotateCcw size={13} strokeWidth={1.7} aria-hidden />
-                  Filtreleri temizle
-                </motion.button>
-              )}
-            </AnimatePresence>
+              Sırala:
+            </label>
+            <div className="relative">
+              <select
+                id="sort"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+                aria-label="Ürünleri sırala"
+                className="appearance-none cursor-pointer rounded-full border border-rose-gold/30 bg-cream-soft pl-4 pr-9 h-9 text-sm text-coffee font-medium hover:border-rose-gold focus:outline-none focus:border-rose-gold focus:ring-2 focus:ring-rose-gold/20 transition-colors"
+                style={{ colorScheme: "light" }}
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.key} value={o.key}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              <ArrowUpDown
+                size={13}
+                strokeWidth={1.8}
+                className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-rose-goldDark"
+                aria-hidden
+              />
+            </div>
           </div>
         </div>
       )}
