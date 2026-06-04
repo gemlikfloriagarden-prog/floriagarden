@@ -17,8 +17,15 @@ import {
   Cake,
   PackageX,
   Gift,
+  Wrench,
+  ExternalLink,
 } from "lucide-react";
 import { useAdminData } from "@/components/admin/AdminDataProvider";
+import { useMaintenance } from "@/components/maintenance/useMaintenance";
+import {
+  setStoredMaintenance,
+  ENV_MAINTENANCE,
+} from "@/lib/maintenance";
 import {
   AdminCard,
   ConfirmDialog,
@@ -67,8 +74,22 @@ function discountLabel(c: GeneralCode) {
 export default function AdminDashboard() {
   const { data, reset, addGeneralCode, removeGeneralCode } = useAdminData();
   const { toast } = useToast();
+  const maintenance = useMaintenance();
 
   const [confirmReset, setConfirmReset] = useState(false);
+
+  const toggleMaintenance = () => {
+    if (ENV_MAINTENANCE) return; // ortam değişkeni öncelikli
+    const next = !maintenance;
+    setStoredMaintenance(next);
+    toast({
+      title: next ? "Bakım modu açıldı" : "Bakım modu kapatıldı",
+      description: next
+        ? "Ziyaretçiler artık bakım sayfasını görüyor."
+        : "Site yeniden normal yayında.",
+      tone: next ? "warning" : "success",
+    });
+  };
 
   // Genel kod formu
   const [code, setCode] = useState("");
@@ -470,6 +491,70 @@ export default function AdminDashboard() {
             </ul>
           )}
         </div>
+      </AdminCard>
+
+      {/* Bakım modu */}
+      <AdminCard className="p-6 mb-8">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl ${
+                maintenance
+                  ? "bg-bordo-gradient text-cream"
+                  : "bg-rose-gold-gradient text-coffee"
+              }`}
+            >
+              <Wrench size={18} strokeWidth={1.7} />
+            </span>
+            <div>
+              <h2 className="font-display text-2xl text-coffee leading-tight">
+                Bakım Modu
+              </h2>
+              <p className="text-sm text-coffee/55">
+                {maintenance
+                  ? "Açık — ziyaretçiler bakım sayfasını görüyor."
+                  : "Kapalı — site normal yayında."}
+              </p>
+            </div>
+          </div>
+
+          {/* Toggle */}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={maintenance}
+            aria-label="Bakım modunu aç/kapat"
+            onClick={toggleMaintenance}
+            disabled={ENV_MAINTENANCE}
+            className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              maintenance ? "bg-bordo" : "bg-coffee/20"
+            }`}
+          >
+            <span
+              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-soft transition-all duration-200 ${
+                maintenance ? "left-6" : "left-1"
+              }`}
+            />
+          </button>
+        </div>
+
+        {maintenance && !ENV_MAINTENANCE && (
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 mt-4 text-xs text-rose-goldDark hover:text-bordo transition-colors"
+          >
+            Bakım sayfasını önizle
+            <ExternalLink size={13} strokeWidth={1.8} />
+          </a>
+        )}
+
+        <p className="mt-4 text-xs text-coffee/45 leading-relaxed max-w-2xl">
+          {ENV_MAINTENANCE
+            ? "Şu an ortam değişkeni (NEXT_PUBLIC_MAINTENANCE) ile global olarak açık. Kapatmak için Vercel ayarlarından değişkeni kaldırın."
+            : "Demo: bu anahtar şimdilik yalnızca bu tarayıcıda etkilidir (önizleme/test). Tüm ziyaretçilere global açmak için Vercel'de NEXT_PUBLIC_MAINTENANCE=1 yapın; veritabanına geçince bu toggle global çalışacak."}
+        </p>
       </AdminCard>
 
       {/* Demo bilgi notu */}

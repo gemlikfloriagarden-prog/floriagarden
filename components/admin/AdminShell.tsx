@@ -13,8 +13,10 @@ import {
   Menu,
   X,
   ExternalLink,
+  Wrench,
 } from "lucide-react";
 import { ADMIN_SESSION_KEY } from "@/lib/admin/store";
+import { useMaintenance } from "@/components/maintenance/useMaintenance";
 import { cn } from "@/lib/utils/cn";
 
 const NAV = [
@@ -81,6 +83,7 @@ function Brand() {
 
 export default function AdminShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const maintenance = useMaintenance();
 
   return (
     <div className="min-h-screen bg-section-coffee">
@@ -180,6 +183,12 @@ export default function AdminShell({ children }: { children: ReactNode }) {
 
       {/* İçerik */}
       <main className="md:pl-64">
+        {maintenance && (
+          <div className="bg-bordo text-cream text-center text-xs sm:text-sm px-4 py-2 flex items-center justify-center gap-2">
+            <Wrench size={14} strokeWidth={1.8} className="text-rose-gold" />
+            Bakım modu açık — ziyaretçiler bakım sayfasını görüyor.
+          </div>
+        )}
         <div className="px-5 sm:px-8 py-8 md:py-12 max-w-5xl mx-auto">
           {children}
         </div>

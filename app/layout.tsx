@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import Footer from "@/components/layout/Footer";
 import { PublicHeader, PublicFooter } from "@/components/layout/PublicChrome";
+import MaintenanceGate from "@/components/maintenance/MaintenanceGate";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { ToastProvider } from "@/components/toast/ToastProvider";
 import { WishlistProvider } from "@/components/wishlist/WishlistProvider";
@@ -87,7 +88,9 @@ export default function RootLayout({
               >
                 İçeriğe atla
               </a>
-              <main id="main-content" className="flex-1">{children}</main>
+              <main id="main-content" className="flex-1">
+                <MaintenanceGate>{children}</MaintenanceGate>
+              </main>
               <PublicFooter>
                 <Footer />
               </PublicFooter>

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 import Navbar from "./Navbar";
+import { useMaintenance } from "@/components/maintenance/useMaintenance";
 
 // Performans: ilk paint'i etkilemeyen bileşenler lazy + ssr kapalı.
 const SeasonalBanner = dynamic(
@@ -32,7 +33,9 @@ function isAdmin(pathname: string | null) {
 
 export function PublicHeader() {
   const pathname = usePathname();
-  if (isAdmin(pathname)) return null;
+  const maintenance = useMaintenance();
+  // Admin veya bakım modunda public başlık gizlenir.
+  if (isAdmin(pathname) || maintenance) return null;
   return (
     <>
       <SeasonalBanner />
@@ -43,7 +46,8 @@ export function PublicHeader() {
 
 export function PublicFooter({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  if (isAdmin(pathname)) return null;
+  const maintenance = useMaintenance();
+  if (isAdmin(pathname) || maintenance) return null;
   return (
     <>
       {children}
