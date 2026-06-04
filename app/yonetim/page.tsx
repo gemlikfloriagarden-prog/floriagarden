@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import {
   Tags,
   Flower2,
@@ -14,6 +14,9 @@ import {
   Copy,
   Check,
   Trash2,
+  Cake,
+  PackageX,
+  Gift,
 } from "lucide-react";
 import { useAdminData } from "@/components/admin/AdminDataProvider";
 import {
@@ -26,7 +29,44 @@ import Button from "@/components/ui/Button";
 import { useToast } from "@/components/toast/ToastProvider";
 import { generateGeneralCode } from "@/lib/admin/store";
 import { formatPrice } from "@/lib/utils/format";
-import type { GeneralCode } from "@/lib/admin/types";
+import type { GeneralCode, StockState } from "@/lib/admin/types";
+
+/** Bir sonraki doğum gününe kalan gün sayısı. */
+function daysUntilBirthday(birthDate: string, today: Date): number | null {
+  const parts = birthDate.split("-").map(Number);
+  if (parts.length < 3 || parts.some((n) => Number.isNaN(n))) return null;
+  const [, month, day] = parts;
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  let next = new Date(today.getFullYear(), month - 1, day);
+  if (next < start) next = new Date(today.getFullYear() + 1, month - 1, day);
+  return Math.round((next.getTime() - start.getTime()) / 86_400_000);
+}
+
+function formatDayMonth(birthDate: string): string {
+  try {
+    const [y, m, d] = birthDate.split("-").map(Number);
+    return new Intl.DateTimeFormat("tr-TR", {
+      day: "numeric",
+      month: "long",
+    }).format(new Date(y, m - 1, d));
+  } catch {
+    return "—";
+  }
+}
+
+const STOCK_INFO: Record<
+  Exclude<StockState, "var">,
+  { label: string; style: string }
+> = {
+  az: {
+    label: "Az kaldı",
+    style: "bg-rose-gold/15 text-rose-goldDark border-rose-gold/35",
+  },
+  tukendi: {
+    label: "Tükendi",
+    style: "bg-bordo/10 text-bordo border-bordo/25",
+  },
+};
 
 function formatDate(iso: string) {
   try {
@@ -61,6 +101,28 @@ export default function AdminDashboard() {
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [removeTarget, setRemoveTarget] = useState<GeneralCode | null>(null);
+
+  // Yaklaşan doğum günleri (en yakın 5)
+  const upcomingBirthdays = useMemo(() => {
+    const today = new Date();
+    return data.members
+      .filter((m) => m.birthDate)
+      .map((m) => ({
+        member: m,
+        days: daysUntilBirthday(m.birthDate as string, today),
+      }))
+      .filter((x): x is { member: (typeof data.members)[number]; days: number } =>
+        x.days !== null,
+      )
+      .sort((a, b) => a.days - b.days)
+      .slice(0, 5);
+  }, [data.members]);
+
+  // Stok uyarıları (tükenen + az kalan)
+  const stockAlerts = useMemo(
+    () => data.products.filter((p) => p.stock === "az" || p.stock === "tukendi"),
+    [data.products],
+  );
 
   const stats = [
     {
@@ -150,6 +212,141 @@ export default function AdminDashboard() {
             </AdminCard>
           </Link>
         ))}
+      </div>
+
+      {/* Doğum günleri + Stok uyarıları */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+        {/* Yaklaşan doğum günleri */}
+        <AdminCard className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-gold-gradient text-coffee">
+              <Cake size={18} strokeWidth={1.7} />
+            </span>
+            <div>
+              <h2 className="font-display text-2xl text-coffee leading-tight">
+                Yaklaşan Doğum Günleri
+              </h2>
+              <p className="text-sm text-coffee/55">
+                Üyeye özel kod göndermek için fırsat.
+              </p>
+            </div>
+          </div>
+
+          {upcomingBirthdays.length === 0 ? (
+            <p className="text-sm text-coffee/50 bg-cream-soft rounded-2xl px-4 py-3">
+              Doğum tarihi kayıtlı üye yok.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {upcomingBirthdays.map(({ member, days }) => {
+                const soon = days <= 30;
+                return (
+                  <li
+                    key={member.id}
+                    className="flex items-center gap-3 rounded-2xl border border-rose-gold/15 px-4 py-3"
+                  >
+                    <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-bordo-gradient text-cream font-display text-base">
+                      {member.name.charAt(0)}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-coffee leading-tight truncate">
+                        {member.name}
+                      </p>
+                      <p className="text-xs text-coffee/50">
+                        {formatDayMonth(member.birthDate as string)}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] font-medium ${
+                        soon
+                          ? "bg-rose-gold/15 text-rose-goldDark border-rose-gold/35"
+                          : "bg-cream-soft text-coffee/55 border-rose-gold/15"
+                      }`}
+                    >
+                      {soon && <Gift size={11} strokeWidth={2} />}
+                      {days === 0
+                        ? "Bugün!"
+                        : days === 1
+                          ? "Yarın"
+                          : `${days} gün`}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <Link
+            href="/yonetim/uyeler"
+            className="inline-flex items-center gap-1.5 text-xs text-rose-goldDark hover:text-bordo transition-colors mt-4"
+          >
+            Üyelere git
+            <ArrowRight size={13} strokeWidth={1.8} />
+          </Link>
+        </AdminCard>
+
+        {/* Stok uyarıları */}
+        <AdminCard className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-bordo-gradient text-cream">
+              <PackageX size={18} strokeWidth={1.7} />
+            </span>
+            <div>
+              <h2 className="font-display text-2xl text-coffee leading-tight">
+                Stok Uyarıları
+              </h2>
+              <p className="text-sm text-coffee/55">
+                Tükenen ve az kalan ürünler.
+              </p>
+            </div>
+          </div>
+
+          {stockAlerts.length === 0 ? (
+            <p className="text-sm text-coffee/50 bg-cream-soft rounded-2xl px-4 py-3">
+              Tüm ürünler stokta 🌿
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {stockAlerts.map((p) => {
+                const info = STOCK_INFO[p.stock as "az" | "tukendi"];
+                const categoryName =
+                  data.categories.find((c) => c.slug === p.category)?.name ?? "—";
+                return (
+                  <li
+                    key={p.id}
+                    className="flex items-center gap-3 rounded-2xl border border-rose-gold/15 px-4 py-3"
+                  >
+                    <div
+                      className={`h-9 w-9 flex-shrink-0 rounded-xl bg-gradient-to-br ${p.gradient}`}
+                      aria-hidden
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-coffee leading-tight truncate">
+                        {p.name}
+                      </p>
+                      <p className="text-xs text-coffee/50 truncate">
+                        {categoryName}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[0.65rem] font-medium ${info.style}`}
+                    >
+                      {info.label}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          <Link
+            href="/yonetim/urunler"
+            className="inline-flex items-center gap-1.5 text-xs text-rose-goldDark hover:text-bordo transition-colors mt-4"
+          >
+            Ürünlere git
+            <ArrowRight size={13} strokeWidth={1.8} />
+          </Link>
+        </AdminCard>
       </div>
 
       {/* Genel kodlar */}
