@@ -28,31 +28,9 @@ import {
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/toast/ToastProvider";
 import { generateGeneralCode } from "@/lib/admin/store";
+import { daysUntilBirthday, formatDayMonth } from "@/lib/admin/birthday";
 import { formatPrice } from "@/lib/utils/format";
 import type { GeneralCode, StockState } from "@/lib/admin/types";
-
-/** Bir sonraki doğum gününe kalan gün sayısı. */
-function daysUntilBirthday(birthDate: string, today: Date): number | null {
-  const parts = birthDate.split("-").map(Number);
-  if (parts.length < 3 || parts.some((n) => Number.isNaN(n))) return null;
-  const [, month, day] = parts;
-  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  let next = new Date(today.getFullYear(), month - 1, day);
-  if (next < start) next = new Date(today.getFullYear() + 1, month - 1, day);
-  return Math.round((next.getTime() - start.getTime()) / 86_400_000);
-}
-
-function formatDayMonth(birthDate: string): string {
-  try {
-    const [y, m, d] = birthDate.split("-").map(Number);
-    return new Intl.DateTimeFormat("tr-TR", {
-      day: "numeric",
-      month: "long",
-    }).format(new Date(y, m - 1, d));
-  } catch {
-    return "—";
-  }
-}
 
 const STOCK_INFO: Record<
   Exclude<StockState, "var">,

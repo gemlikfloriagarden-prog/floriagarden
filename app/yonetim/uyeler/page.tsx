@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import {
   Users,
   Phone,
@@ -13,7 +13,14 @@ import {
   Trash2,
   Plus,
   Sparkles,
+  Gift,
+  ChevronRight,
 } from "lucide-react";
+import {
+  daysUntilBirthday,
+  formatDayMonth,
+  birthdayCountdownLabel,
+} from "@/lib/admin/birthday";
 import { useAdminData } from "@/components/admin/AdminDataProvider";
 import {
   AdminPageHeader,
@@ -55,6 +62,30 @@ export default function UyelerPage() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [removeCode, setRemoveCode] = useState<MemberCode | null>(null);
+  const [birthdayOpen, setBirthdayOpen] = useState(false);
+
+  // Doğum günü yaklaşan üyeler (en yakına göre sıralı)
+  const upcomingBirthdays = useMemo(() => {
+    const today = new Date();
+    return data.members
+      .filter((m) => m.birthDate)
+      .map((m) => ({ member: m, days: daysUntilBirthday(m.birthDate as string, today) }))
+      .filter((x): x is { member: (typeof data.members)[number]; days: number } =>
+        x.days !== null,
+      )
+      .sort((a, b) => a.days - b.days);
+  }, [data.members]);
+
+  // Doğum günü çok yakın olanlar (bugün veya yarın)
+  const imminentCount = useMemo(
+    () => upcomingBirthdays.filter((x) => x.days <= 1).length,
+    [upcomingBirthdays],
+  );
+
+  const openMemberFromBirthday = (id: string) => {
+    setBirthdayOpen(false);
+    setDetailId(id);
+  };
 
   // Kod üretim formu
   const [discountType, setDiscountType] = useState<"percent" | "fixed">(
@@ -97,6 +128,49 @@ export default function UyelerPage() {
         title="Üyeler"
         description="Üye bilgileri ve kişiye özel indirim/takip kodları."
       />
+
+      {/* Doğum günü yaklaşanlar — girilebilir bölüm */}
+      <button
+        type="button"
+        onClick={() => setBirthdayOpen(true)}
+        className="w-full mb-6 flex items-center gap-4 rounded-3xl border border-rose-gold/25 bg-gradient-to-r from-cream-soft to-white shadow-soft px-5 py-4 text-left hover:border-rose-gold/45 hover:shadow-card transition-all duration-300 group"
+      >
+        <span className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-rose-gold-gradient text-coffee">
+          <Cake size={22} strokeWidth={1.6} />
+        </span>
+        <div className="flex-1 min-w-0">
+          <h2 className="font-display text-xl text-coffee leading-tight">
+            Doğum Günü Yaklaşanlar
+          </h2>
+          <p className="text-sm text-coffee/55">
+            {imminentCount > 0
+              ? `${imminentCount} üyenin doğum günü bugün veya yarın`
+              : "Yaklaşan doğum günlerini görüntüleyin"}
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          {/* Çok yakın (bugün/yarın) üye sayısı */}
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-3 h-8 text-sm font-semibold tabular-nums ${
+              imminentCount > 0
+                ? "bg-bordo text-cream"
+                : "bg-cream-soft text-coffee/45 border border-rose-gold/20"
+            }`}
+            aria-label={`${imminentCount} üyenin doğum günü çok yakın`}
+          >
+            {imminentCount > 0 && <Gift size={13} strokeWidth={2} />}
+            {imminentCount}
+          </span>
+          <span className="hidden sm:inline-flex items-center gap-0.5 text-sm font-medium text-rose-goldDark group-hover:text-bordo transition-colors">
+            Gör
+            <ChevronRight
+              size={16}
+              strokeWidth={1.8}
+              className="group-hover:translate-x-0.5 transition-transform"
+            />
+          </span>
+        </div>
+      </button>
 
       {data.members.length === 0 ? (
         <AdminCard className="p-12 flex flex-col items-center text-center gap-4">
@@ -287,6 +361,65 @@ export default function UyelerPage() {
               </Button>
             </form>
           </div>
+        )}
+      </Modal>
+
+      {/* Doğum günü yaklaşanlar — girilebilir liste */}
+      <Modal
+        open={birthdayOpen}
+        onClose={() => setBirthdayOpen(false)}
+        title="Doğum Günü Yaklaşanlar"
+        size="lg"
+      >
+        {upcomingBirthdays.length === 0 ? (
+          <p className="text-sm text-coffee/55 bg-cream-soft rounded-2xl px-4 py-4 text-center">
+            Doğum tarihi kayıtlı üye bulunmuyor.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {upcomingBirthdays.map(({ member, days }) => {
+              const imminent = days <= 1;
+              const soon = days <= 30;
+              return (
+                <li key={member.id}>
+                  <button
+                    type="button"
+                    onClick={() => openMemberFromBirthday(member.id)}
+                    className="w-full flex items-center gap-3 rounded-2xl border border-rose-gold/15 px-4 py-3 text-left hover:bg-cream-soft hover:border-rose-gold/35 transition-colors group"
+                  >
+                    <span className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-bordo-gradient text-cream font-display text-base">
+                      {member.name.charAt(0)}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-coffee leading-tight truncate">
+                        {member.name}
+                      </p>
+                      <p className="text-xs text-coffee/50">
+                        🎂 {formatDayMonth(member.birthDate as string)}
+                      </p>
+                    </div>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[0.65rem] font-medium ${
+                        imminent
+                          ? "bg-bordo text-cream border-transparent"
+                          : soon
+                            ? "bg-rose-gold/15 text-rose-goldDark border-rose-gold/35"
+                            : "bg-cream-soft text-coffee/55 border-rose-gold/15"
+                      }`}
+                    >
+                      {imminent && <Gift size={11} strokeWidth={2} />}
+                      {birthdayCountdownLabel(days)}
+                    </span>
+                    <ChevronRight
+                      size={16}
+                      strokeWidth={1.7}
+                      className="text-coffee/30 group-hover:text-bordo group-hover:translate-x-0.5 transition-all flex-shrink-0"
+                    />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </Modal>
 
