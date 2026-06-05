@@ -170,7 +170,7 @@ export default function Hero() {
             initial={{ opacity: 0, scale: 0.96, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-            className="lg:col-span-5 relative"
+            className="hidden md:block lg:col-span-5 relative"
           >
             {/* Rose-gold halka */}
             <div
