@@ -3,8 +3,8 @@ export const SITE = {
   tagline: "Flowers and Coffee",
   shortDescription: "Gemlik'in yeni nesil butik çiçekçisi",
   city: "Gemlik",
-  // TODO: gerçek işletme e-postası gelince güncellenecek
-  email: "merhaba@floriagarden.com",
+  // TODO: Alastyr'da bu kutuyu aç (info@gemlikfloriagarden.com) ya da farklı bir adres ver
+  email: "info@gemlikfloriagarden.com",
   phoneDisplay: "+90 541 623 98 16",
   phoneRaw: "905416239816",
   address:
@@ -29,7 +29,7 @@ export const SITE = {
  */
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-  "https://floriagarden.com";
+  "https://gemlikfloriagarden.com";
 
 export const WHATSAPP_DEFAULT_MESSAGE =
   "Merhaba Floria Garden, ürünleriniz hakkında bilgi almak istiyorum.";
