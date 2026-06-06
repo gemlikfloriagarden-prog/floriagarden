@@ -207,18 +207,3 @@
     background-size: 22px 22px;
   }
 }
-
-/* ── Tüm açılır menü (select) okları ──
-   Tarayıcının değişken/kayan native okunu kaldırıp markaya uygun, daima
-   dikey ortalı tek bir ok koyar. !important ile Tailwind utility'lerinin
-   (pl-*, pr-*) bu konumu ezmesi engellenir. */
-select {
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='16'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23A3823F'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%209l6%206%206-6'/%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 0.9rem center !important;
-  background-size: 1rem 1rem !important;
-  padding-right: 2.5rem !important;
-}
