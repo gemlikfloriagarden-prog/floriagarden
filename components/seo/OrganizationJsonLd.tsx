@@ -1,4 +1,4 @@
-import { SITE } from "@/lib/constants";
+import { SITE, SITE_URL } from "@/lib/constants";
 
 /**
  * Tüm sayfalarda yer alan kurumsal yapılandırılmış veri.
@@ -9,8 +9,8 @@ export default function OrganizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE.name,
-    url: "https://floriagarden.com",
-    logo: "https://floriagarden.com/icon",
+    url: SITE_URL,
+    logo: `${SITE_URL}/icon`,
     description: SITE.shortDescription,
     slogan: SITE.tagline,
     sameAs: [SITE.instagram.url],

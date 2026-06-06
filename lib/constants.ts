@@ -22,6 +22,15 @@ export const SITE = {
   },
 } as const;
 
+/**
+ * Sitenin kök adresi. Vercel'de NEXT_PUBLIC_SITE_URL ortam değişkeniyle
+ * gerçek domaine ayarlanır (örn. https://floriagarden.com.tr).
+ * Tüm SEO/sitemap/JSON-LD adresleri buradan beslenir.
+ */
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+  "https://floriagarden.com";
+
 export const WHATSAPP_DEFAULT_MESSAGE =
   "Merhaba Floria Garden, ürünleriniz hakkında bilgi almak istiyorum.";
 

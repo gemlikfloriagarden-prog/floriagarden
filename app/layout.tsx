@@ -9,6 +9,7 @@ import { WishlistProvider } from "@/components/wishlist/WishlistProvider";
 import { SearchProvider } from "@/components/search/SearchProvider";
 import { Analytics } from "@vercel/analytics/react";
 import OrganizationJsonLd from "@/components/seo/OrganizationJsonLd";
+import { SITE_URL } from "@/lib/constants";
 import "./globals.css";
 
 // Performans: yalnızca kullandığımız ağırlıkları yükle (4 → 2)
@@ -28,7 +29,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://floriagarden.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Floria Garden — Yeni Nesil Çiçekçi · Gemlik",
     template: "%s · Floria Garden",

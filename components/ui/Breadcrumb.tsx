@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { SITE_URL } from "@/lib/constants";
 
 export type Crumb = {
   label: string;
@@ -22,15 +23,13 @@ export default function Breadcrumb({ items, className }: Props) {
         "@type": "ListItem",
         position: 1,
         name: "Anasayfa",
-        item: "https://floriagarden.com/",
+        item: `${SITE_URL}/`,
       },
       ...items.map((c, idx) => ({
         "@type": "ListItem",
         position: idx + 2,
         name: c.label,
-        ...(c.href
-          ? { item: `https://floriagarden.com${c.href}` }
-          : {}),
+        ...(c.href ? { item: `${SITE_URL}${c.href}` } : {}),
       })),
     ],
   };

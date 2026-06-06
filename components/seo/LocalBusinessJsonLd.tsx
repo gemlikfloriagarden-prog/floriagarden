@@ -1,4 +1,4 @@
-import { SITE } from "@/lib/constants";
+import { SITE, SITE_URL } from "@/lib/constants";
 
 /**
  * Anasayfaya yerleştirilen LocalBusiness/Florist JSON-LD.
@@ -10,8 +10,8 @@ export default function LocalBusinessJsonLd() {
     "@type": "Florist",
     name: SITE.name,
     description: SITE.shortDescription,
-    image: "https://floriagarden.com/opengraph-image",
-    url: "https://floriagarden.com",
+    image: `${SITE_URL}/opengraph-image`,
+    url: SITE_URL,
     telephone: `+${SITE.phoneRaw}`,
     email: SITE.email,
     address: {

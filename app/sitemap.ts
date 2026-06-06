@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { PRODUCTS } from "@/lib/data/products";
 import { CATEGORIES } from "@/lib/data/categories";
+import { SITE_URL } from "@/lib/constants";
 
-const BASE_URL = "https://floriagarden.com";
+const BASE_URL = SITE_URL;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

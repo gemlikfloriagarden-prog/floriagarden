@@ -1,5 +1,6 @@
 import type { Product } from "@/lib/data/products";
 import { getReviewsByProduct, getAverageRating } from "@/lib/data/reviews";
+import { SITE_URL } from "@/lib/constants";
 
 /**
  * Server bileşeni — Product detay sayfası için tam JSON-LD.
@@ -20,7 +21,7 @@ export default function ProductJsonLd({ product }: { product: Product }) {
     category: product.category,
     offers: {
       "@type": "Offer",
-      url: `https://floriagarden.com/urun/${product.slug}`,
+      url: `${SITE_URL}/urun/${product.slug}`,
       priceCurrency: "TRY",
       price: product.price,
       availability:
