@@ -15,6 +15,7 @@ import {
   Gift,
   MapPin,
   X,
+  Printer,
 } from "lucide-react";
 import { useAdminData } from "@/components/admin/AdminDataProvider";
 import {
@@ -256,6 +257,49 @@ export default function SiparislerPage() {
     } catch {
       toast({ title: "Kopyalanamadı", tone: "warning" });
     }
+  };
+
+  const printOrder = (o: Order) => {
+    const esc = (t: string) =>
+      String(t ?? "").replace(/[&<>]/g, (c) =>
+        c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;",
+      );
+    const rows = o.items
+      .map(
+        (it) =>
+          `<tr><td>${esc(it.name)}</td><td style="text-align:center">${it.quantity}</td><td style="text-align:right">${esc(formatPrice(it.price * it.quantity))}</td></tr>`,
+      )
+      .join("");
+    const html = `<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${esc(o.orderNo)}</title>
+<style>
+  body{font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#2a1a14;padding:28px;max-width:520px;margin:auto}
+  h1{font-size:20px;margin:0 0 2px}.muted{color:#8a7;font-size:12px;color:#8a7a70}
+  .box{border:1px solid #e7d8c8;border-radius:12px;padding:14px;margin-top:14px}
+  .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#a3823f;margin-bottom:2px}
+  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:14px}
+  td{padding:6px 0;border-bottom:1px solid #f0e6da}
+  .total{font-weight:700;font-size:16px;color:#8e1f3f;text-align:right;margin-top:8px}
+  .note{font-style:italic;background:#faf6f0;border-radius:10px;padding:10px;margin-top:6px}
+  @media print{button{display:none}}
+</style></head><body>
+  <h1>Floria Garden</h1>
+  <div class="muted">Sipariş ${esc(o.orderNo)} · ${esc(formatOrderDate(o.createdAt))}</div>
+  <div class="box"><div class="lbl">Alıcı</div><b>${esc(o.recipientName || o.customerName)}</b><br>${esc(o.recipientPhone || o.customerPhone)}<br>${esc(o.address)}</div>
+  <div class="box"><div class="lbl">Teslimat</div>${esc(o.deliveryZone)} · ${esc(formatOrderDate(o.deliveryDate))} ${esc(o.deliverySlot)}</div>
+  ${o.cardNote ? `<div class="box"><div class="lbl">Kart Notu</div><div class="note">${esc(o.cardNote)}</div></div>` : ""}
+  <div class="box"><div class="lbl">Ürünler</div><table>${rows}</table><div class="total">Toplam: ${esc(formatPrice(orderTotal(o)))}</div></div>
+  ${o.surprise ? '<p class="muted">⚠ Sürpriz teslimat — gönderen açıklanmaz</p>' : ""}
+  <button onclick="window.print()" style="margin-top:16px;padding:8px 16px">Yazdır</button>
+</body></html>`;
+    const w = window.open("", "_blank", "width=560,height=720");
+    if (!w) {
+      toast({ title: "Pencere açılamadı", description: "Pop-up'a izin verin", tone: "warning" });
+      return;
+    }
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 300);
   };
 
   return (
@@ -812,6 +856,14 @@ export default function SiparislerPage() {
                   Müşteriye WhatsApp
                 </a>
               )}
+              <button
+                type="button"
+                onClick={() => printOrder(detail)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-rose-gold/30 text-coffee/75 hover:text-bordo hover:border-bordo px-4 h-10 text-sm transition-colors"
+              >
+                <Printer size={14} strokeWidth={1.8} />
+                Yazdır
+              </button>
               <button
                 type="button"
                 onClick={() => openEdit(detail)}
