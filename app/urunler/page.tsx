@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import ProductGrid from "@/components/product/ProductGrid";
+import ProductsBrowser from "@/components/product/ProductsBrowser";
 import { getPublicProducts, getPublicCategories } from "@/lib/db/queries";
 
 export const metadata: Metadata = {
@@ -36,23 +35,8 @@ export default async function AllProductsPage() {
           </p>
         </header>
 
-        {/* Kategori chip filtreleri */}
-        <div className="flex flex-wrap gap-2 mb-10">
-          <span className="inline-flex items-center rounded-full bg-rose-gold-gradient text-coffee px-4 h-9 text-xs font-medium tracking-wide">
-            Tümü
-          </span>
-          {categories.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/koleksiyon/${c.slug}`}
-              className="inline-flex items-center rounded-full border border-rose-gold/25 bg-cream/5 text-coffee/75 hover:text-coffee hover:border-rose-gold px-4 h-9 text-xs tracking-wide transition-colors"
-            >
-              {c.name}
-            </Link>
-          ))}
-        </div>
-
-        <ProductGrid products={products} />
+        {/* Kategoriler client tarafında anında filtreler */}
+        <ProductsBrowser products={products} categories={categories} />
       </div>
     </article>
   );
