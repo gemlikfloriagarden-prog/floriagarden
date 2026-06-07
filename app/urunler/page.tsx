@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ProductsBrowser from "@/components/product/ProductsBrowser";
-import { getPublicProducts, getPublicCategories } from "@/lib/db/queries";
 
 export const metadata: Metadata = {
   title: "Tüm Ürünler",
@@ -9,15 +8,7 @@ export const metadata: Metadata = {
     "Floria Garden'ın premium çiçek koleksiyonu — buketler, kutuda çiçekler, saksı çiçekleri, özel gün düzenlemeleri ve daha fazlası.",
 };
 
-// Veritabanından canlı okunur
-export const dynamic = "force-dynamic";
-
-export default async function AllProductsPage() {
-  const [products, categories] = await Promise.all([
-    getPublicProducts(),
-    getPublicCategories(),
-  ]);
-
+export default function AllProductsPage() {
   return (
     <article className="pt-28 md:pt-32 pb-20 md:pb-28">
       <div className="container">
@@ -35,8 +26,8 @@ export default async function AllProductsPage() {
           </p>
         </header>
 
-        {/* Kategoriler client tarafında anında filtreler */}
-        <ProductsBrowser products={products} categories={categories} />
+        {/* Ürünler client tarafında (önbellekli) yüklenir, kategoriler anında filtreler */}
+        <ProductsBrowser />
       </div>
     </article>
   );
