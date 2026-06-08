@@ -459,6 +459,50 @@ export async function getMemberAuthByEmail(
   return { id: s(rows[0].id), passwordHash: s(rows[0].password_hash) };
 }
 
+/** Şifre sıfırlama için: e-postaya göre en yeni üyeyi bul. */
+export async function getMemberIdByEmail(email: string): Promise<string | null> {
+  if (!email) return null;
+  const rows = await query<Row>(
+    "SELECT id FROM members WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) ORDER BY joined_at DESC LIMIT 1",
+    [email],
+  );
+  return rows[0] ? s(rows[0].id) : null;
+}
+
+export async function createPasswordResetToken(
+  memberId: string,
+  tokenHash: string,
+) {
+  await execute(
+    "INSERT INTO password_reset_tokens (token_hash,member_id,expires_at) VALUES (?,?,DATE_ADD(NOW(), INTERVAL 1 HOUR))",
+    [tokenHash, memberId],
+  );
+}
+
+export async function getValidPasswordResetMember(
+  tokenHash: string,
+): Promise<string | null> {
+  const rows = await query<Row>(
+    "SELECT member_id FROM password_reset_tokens WHERE token_hash = ? AND used_at IS NULL AND expires_at > NOW() LIMIT 1",
+    [tokenHash],
+  );
+  return rows[0] ? s(rows[0].member_id) : null;
+}
+
+export async function markPasswordResetTokenUsed(tokenHash: string) {
+  await execute(
+    "UPDATE password_reset_tokens SET used_at = NOW() WHERE token_hash = ?",
+    [tokenHash],
+  );
+}
+
+export async function updateMemberPassword(memberId: string, passwordHash: string) {
+  await execute("UPDATE members SET password_hash = ? WHERE id = ?", [
+    passwordHash,
+    memberId,
+  ]);
+}
+
 /** Hesabım sayfası için: üye + kodları. */
 export async function getMemberWithCodes(id: string): Promise<Member | null> {
   const rows = await query<Row>("SELECT * FROM members WHERE id = ? LIMIT 1", [

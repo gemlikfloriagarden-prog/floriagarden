@@ -2,8 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, Phone, Calendar } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Mail, Lock, User, Eye, EyeOff, Phone, Calendar, X } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/toast/ToastProvider";
 
@@ -19,6 +19,10 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -104,6 +108,40 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 
   const inputBase =
     "w-full rounded-2xl bg-cream-soft border border-rose-gold/25 pl-11 pr-4 h-12 text-sm text-coffee placeholder:text-coffee/40 focus:outline-none focus:border-bordo focus:bg-white transition-colors";
+
+  const requestPasswordReset = async (e: FormEvent) => {
+    e.preventDefault();
+    const normalizedEmail = resetEmail.trim().toLowerCase();
+    if (!normalizedEmail) {
+      toast({ title: "E-posta gerekli", tone: "warning" });
+      return;
+    }
+    setResetLoading(true);
+    try {
+      await fetch("/api/member/password-reset/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+      setResetSent(true);
+      toast({
+        title: "E-posta gönderildi",
+        description:
+          "Bu e-posta kayıtlıysa şifre sıfırlama bağlantısı birkaç dakika içinde gelir.",
+        tone: "success",
+      });
+    } catch {
+      toast({ title: "Bağlantı hatası", tone: "warning" });
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const openReset = () => {
+    setResetEmail(email.trim().toLowerCase());
+    setResetSent(false);
+    setResetOpen(true);
+  };
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -206,9 +244,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
             <div className="flex justify-end -mt-1">
               <button
                 type="button"
-                onClick={() =>
-                  toast({ title: "Şifre sıfırlama yakında", tone: "info" })
-                }
+                onClick={openReset}
                 className="text-xs text-bordo hover:text-rose-goldDark transition-colors"
               >
                 Şifremi unuttum
@@ -258,6 +294,81 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         Kayıt sonrası hesabınızdan size özel kodları ve üyelik bilgilerinizi
         görüntüleyebilirsiniz.
       </p>
+
+      <AnimatePresence>
+        {resetOpen && (
+          <div className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-coffee-deep/55"
+              onClick={() => setResetOpen(false)}
+              aria-hidden
+            />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Şifre sıfırlama"
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="relative w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl bg-white border border-rose-gold/25 shadow-card p-6"
+            >
+              <button
+                type="button"
+                onClick={() => setResetOpen(false)}
+                aria-label="Kapat"
+                className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-coffee/15 text-coffee/60 hover:text-bordo hover:border-bordo transition-colors"
+              >
+                <X size={16} strokeWidth={1.7} />
+              </button>
+
+              <div className="pr-10">
+                <span className="eyebrow">Şifre Sıfırlama</span>
+                <h2 className="mt-2 font-display text-2xl text-coffee">
+                  Yeni şifre bağlantısı gönder
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-coffee/60">
+                  E-postanızı yazın. Hesabınız kayıtlıysa size 1 saat geçerli
+                  bir sıfırlama bağlantısı göndeririz.
+                </p>
+              </div>
+
+              {resetSent ? (
+                <div className="mt-6 rounded-2xl bg-cream-soft px-4 py-4 text-sm leading-relaxed text-coffee/70">
+                  Gelen kutunuzu ve spam klasörünü kontrol edin. Bağlantı birkaç
+                  dakika içinde ulaşmazsa tekrar deneyebilirsiniz.
+                </div>
+              ) : (
+                <form onSubmit={requestPasswordReset} className="mt-6 flex flex-col gap-4">
+                  <Field icon={<Mail size={16} strokeWidth={1.6} />}>
+                    <input
+                      type="email"
+                      required
+                      value={resetEmail}
+                      onChange={(event) => setResetEmail(event.target.value)}
+                      placeholder="E-posta"
+                      className={inputBase}
+                    />
+                  </Field>
+                  <Button
+                    type="submit"
+                    variant="gold"
+                    size="lg"
+                    className="w-full"
+                    disabled={resetLoading}
+                  >
+                    {resetLoading ? "Gönderiliyor…" : "Bağlantı gönder"}
+                  </Button>
+                </form>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
