@@ -9,26 +9,41 @@ export default function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!email.includes("@") || email.length < 5) {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail.includes("@") || normalizedEmail.length < 5) {
       setError("Geçerli bir e-posta adresi girin.");
       return;
     }
     setError(null);
-    setDone(true);
-    toast({
-      title: "Bültene abone oldunuz",
-      description: "Yeni koleksiyonlardan ilk siz haberdar olun.",
-      tone: "success",
-    });
-    // (Gerçek backend bağlanınca burada API çağrısı olacak)
-    setTimeout(() => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail, source: "footer" }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.ok) {
+        setError(json?.error ?? "Bülten kaydı tamamlanamadı.");
+        return;
+      }
+      setDone(true);
       setEmail("");
-      setDone(false);
-    }, 4000);
+      toast({
+        title: "Bültene abone oldunuz",
+        description: "Yeni koleksiyonlardan ilk siz haberdar olun.",
+        tone: "success",
+      });
+    } catch {
+      setError("Bağlantı hatası. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (done) {
@@ -65,10 +80,11 @@ export default function NewsletterForm() {
         />
         <button
           type="submit"
+          disabled={loading}
           className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-rose-gold-gradient text-coffee text-base sm:text-sm font-semibold tracking-wide shadow-glow hover:brightness-105 transition-all flex-shrink-0"
         >
           <Send size={16} strokeWidth={1.7} />
-          <span>Abone Ol</span>
+          <span>{loading ? "Kaydediliyor…" : "Abone Ol"}</span>
         </button>
       </div>
       {error && (

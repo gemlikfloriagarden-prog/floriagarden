@@ -503,6 +503,13 @@ export async function updateMemberPassword(memberId: string, passwordHash: strin
   ]);
 }
 
+export async function subscribeNewsletter(email: string, source = "footer") {
+  await execute(
+    "INSERT INTO newsletter_subscribers (email,source,status) VALUES (?,?, 'active') ON DUPLICATE KEY UPDATE source = VALUES(source), status = 'active', updated_at = NOW()",
+    [email, source],
+  );
+}
+
 /** Hesabım sayfası için: üye + kodları. */
 export async function getMemberWithCodes(id: string): Promise<Member | null> {
   const rows = await query<Row>("SELECT * FROM members WHERE id = ? LIMIT 1", [

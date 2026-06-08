@@ -33,28 +33,51 @@ const TOPICS = [
 export default function ContactForm() {
   const [state, setState] = useState<FormState>(initialState);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>(
     {},
   );
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const errs: typeof errors = {};
+    const normalizedEmail = state.email.trim().toLowerCase();
+    const phoneDigits = state.phone.replace(/\D/g, "");
+    const hasUsefulPhone = phoneDigits.length > 4;
     if (!state.name.trim()) errs.name = "Adınız gerekli";
-    if (!state.email.trim() && !state.phone.trim())
+    if (!normalizedEmail && !hasUsefulPhone)
       errs.email = "E-posta veya telefon gerekli";
+    if (normalizedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail))
+      errs.email = "Geçerli bir e-posta adresi girin";
     if (!state.message.trim()) errs.message = "Mesajınızı yazın";
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
     }
     setErrors({});
-    // Backend yokken simülasyon
-    setSubmitted(true);
-    setTimeout(() => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...state, email: normalizedEmail }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.ok) {
+        setErrors({
+          message: json?.error ?? "Mesaj gönderilemedi. Lütfen tekrar deneyin.",
+        });
+        return;
+      }
+      setSubmitted(true);
       setState(initialState);
-      setSubmitted(false);
-    }, 4000);
+    } catch {
+      setErrors({
+        message: "Bağlantı hatası. Lütfen WhatsApp veya telefonla ulaşın.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -69,9 +92,16 @@ export default function ContactForm() {
           <Check size={24} strokeWidth={2} />
         </span>
         <h3 className="font-display text-2xl text-coffee">Mesajınız bize ulaştı</h3>
-        <p className="mt-2 text-sm text-coffee/70 max-w-sm mx-auto">
-          Ekibimiz en kısa sürede sizinle iletişime geçecek. Teşekkür ederiz.
-        </p>
+      <p className="mt-2 text-sm text-coffee/70 max-w-sm mx-auto">
+        Ekibimiz en kısa sürede sizinle iletişime geçecek. Teşekkür ederiz.
+      </p>
+      <button
+        type="button"
+        onClick={() => setSubmitted(false)}
+        className="mt-5 text-sm text-bordo hover:text-rose-goldDark transition-colors"
+      >
+        Yeni mesaj gönder
+      </button>
       </motion.div>
     );
   }
@@ -154,9 +184,9 @@ export default function ContactForm() {
       </p>
 
       <div>
-        <Button variant="gold" size="lg" type="submit">
+        <Button variant="gold" size="lg" type="submit" disabled={loading}>
           <Send size={16} strokeWidth={1.7} />
-          <span>Mesajı Gönder</span>
+          <span>{loading ? "Gönderiliyor…" : "Mesajı Gönder"}</span>
         </Button>
       </div>
     </form>
