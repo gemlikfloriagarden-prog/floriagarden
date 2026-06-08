@@ -441,7 +441,7 @@ export async function createMember(m: {
 export async function memberExistsByEmail(email: string): Promise<boolean> {
   if (!email) return false;
   const rows = await query<Row>(
-    "SELECT id FROM members WHERE email = ? LIMIT 1",
+    "SELECT id FROM members WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) LIMIT 1",
     [email],
   );
   return rows.length > 0;
@@ -452,7 +452,7 @@ export async function getMemberAuthByEmail(
   email: string,
 ): Promise<{ id: string; passwordHash: string } | null> {
   const rows = await query<Row>(
-    "SELECT id, password_hash FROM members WHERE email = ? LIMIT 1",
+    "SELECT id, password_hash FROM members WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) AND password_hash IS NOT NULL AND password_hash <> '' ORDER BY joined_at DESC LIMIT 1",
     [email],
   );
   if (!rows[0]) return null;

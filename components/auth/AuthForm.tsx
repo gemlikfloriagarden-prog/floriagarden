@@ -22,10 +22,11 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    const normalizedEmail = email.trim().toLowerCase();
 
     if (isLogin) {
       // ── Giriş ──
-      if (!email.trim() || !password) {
+      if (!normalizedEmail || !password) {
         toast({ title: "E-posta ve şifre gerekli", tone: "warning" });
         return;
       }
@@ -34,7 +35,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         const res = await fetch("/api/member/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email: normalizedEmail, password }),
         });
         const j = await res.json().catch(() => ({}));
         if (res.ok && j?.ok) {
@@ -59,7 +60,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       toast({ title: "Ad ve telefon gerekli", tone: "warning" });
       return;
     }
-    if (!email.trim()) {
+    if (!normalizedEmail) {
       toast({ title: "E-posta gerekli", description: "Giriş için kullanılacak.", tone: "warning" });
       return;
     }
@@ -72,7 +73,13 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email, password, birthDate }),
+        body: JSON.stringify({
+          name,
+          phone,
+          email: normalizedEmail,
+          password,
+          birthDate,
+        }),
       });
       const j = await res.json().catch(() => ({}));
       if (res.ok && j?.ok) {
