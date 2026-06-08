@@ -402,10 +402,11 @@ export async function createMember(m: {
   phone: string;
   email: string;
   birthDate?: string;
+  passwordHash?: string;
 }) {
   await execute(
-    "INSERT INTO members (id,name,phone,email,birth_date) VALUES (?,?,?,?,?)",
-    [m.id, m.name, m.phone, m.email, m.birthDate || null],
+    "INSERT INTO members (id,name,phone,email,birth_date,password_hash) VALUES (?,?,?,?,?,?)",
+    [m.id, m.name, m.phone, m.email, m.birthDate || null, m.passwordHash || null],
   );
 }
 
@@ -416,6 +417,46 @@ export async function memberExistsByEmail(email: string): Promise<boolean> {
     [email],
   );
   return rows.length > 0;
+}
+
+/** Giriş için: e-postaya göre id + şifre hash'i. */
+export async function getMemberAuthByEmail(
+  email: string,
+): Promise<{ id: string; passwordHash: string } | null> {
+  const rows = await query<Row>(
+    "SELECT id, password_hash FROM members WHERE email = ? LIMIT 1",
+    [email],
+  );
+  if (!rows[0]) return null;
+  return { id: s(rows[0].id), passwordHash: s(rows[0].password_hash) };
+}
+
+/** Hesabım sayfası için: üye + kodları. */
+export async function getMemberWithCodes(id: string): Promise<Member | null> {
+  const rows = await query<Row>("SELECT * FROM members WHERE id = ? LIMIT 1", [
+    id,
+  ]);
+  const r = rows[0];
+  if (!r) return null;
+  const codeRows = await query<Row>(
+    "SELECT * FROM member_codes WHERE member_id = ? ORDER BY created_at DESC",
+    [id],
+  );
+  return {
+    id: s(r.id),
+    name: s(r.name),
+    phone: s(r.phone),
+    email: s(r.email),
+    birthDate: opt(r.birth_date),
+    joinedAt: s(r.joined_at),
+    codes: codeRows.map((c) => ({
+      code: s(c.code),
+      discountType: s(c.discount_type) === "fixed" ? "fixed" : "percent",
+      discountValue: n(c.discount_value),
+      note: opt(c.note),
+      createdAt: s(c.created_at),
+    })),
+  };
 }
 
 export async function addMemberCode(memberId: string, c: MemberCode) {

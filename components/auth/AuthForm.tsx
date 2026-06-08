@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, Check, Phone, Calendar } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, Phone, Calendar } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useToast } from "@/components/toast/ToastProvider";
 
@@ -18,27 +18,58 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [done, setDone] = useState(false);
-
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (isLogin) {
-      // Üye giriş alanı (hesap paneli) henüz yok — bilgilendir.
-      toast({
-        title: "Üye girişi yakında",
-        description:
-          "Şimdilik üye olabilir, siparişlerinizi WhatsApp'tan verebilirsiniz.",
-        tone: "info",
-      });
+      // ── Giriş ──
+      if (!email.trim() || !password) {
+        toast({ title: "E-posta ve şifre gerekli", tone: "warning" });
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await fetch("/api/member/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const j = await res.json().catch(() => ({}));
+        if (res.ok && j?.ok) {
+          try {
+            localStorage.setItem("floria-member", "1");
+          } catch {
+            /* yok say */
+          }
+          window.location.href = "/hesabim";
+        } else {
+          toast({
+            title: "Giriş yapılamadı",
+            description: j?.error ?? "E-posta veya şifre hatalı.",
+            tone: "warning",
+          });
+        }
+      } catch {
+        toast({ title: "Bağlantı hatası", tone: "warning" });
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
-    // Kayıt → veritabanına
+    // ── Kayıt ──
     if (!name.trim() || !phone.trim()) {
       toast({ title: "Ad ve telefon gerekli", tone: "warning" });
+      return;
+    }
+    if (!email.trim()) {
+      toast({ title: "E-posta gerekli", description: "Giriş için kullanılacak.", tone: "warning" });
+      return;
+    }
+    if (password.length < 6) {
+      toast({ title: "Şifre en az 6 karakter olmalı", tone: "warning" });
       return;
     }
     setLoading(true);
@@ -46,27 +77,16 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email, birthDate }),
+        body: JSON.stringify({ name, phone, email, password, birthDate }),
       });
       const j = await res.json().catch(() => ({}));
       if (res.ok && j?.ok) {
-        setDone(true);
         try {
           localStorage.setItem("floria-member", "1");
         } catch {
           /* yok say */
         }
-        toast({
-          title: "Kaydınız alındı 🌸",
-          description: "Hoş geldiniz! Kampanya ve özel kodlar için sizi ekledik.",
-          tone: "success",
-        });
-        setName("");
-        setPhone("+90 ");
-        setEmail("");
-        setBirthDate("");
-        setPassword("");
-        setTimeout(() => setDone(false), 2500);
+        window.location.href = "/hesabim";
       } else {
         toast({
           title: "Kayıt yapılamadı",
@@ -206,20 +226,15 @@ export default function AuthForm({ mode }: { mode: Mode }) {
             className="w-full mt-1"
             disabled={loading}
           >
-            {done ? (
-              <>
-                <Check size={18} strokeWidth={2} />
-                <span>Alındı</span>
-              </>
-            ) : (
-              <span>
-                {loading
-                  ? "Kaydediliyor…"
-                  : isLogin
-                    ? "Giriş Yap"
-                    : "Kayıt Ol"}
-              </span>
-            )}
+            <span>
+              {loading
+                ? isLogin
+                  ? "Giriş yapılıyor…"
+                  : "Kaydediliyor…"
+                : isLogin
+                  ? "Giriş Yap"
+                  : "Kayıt Ol"}
+            </span>
           </Button>
         </form>
 

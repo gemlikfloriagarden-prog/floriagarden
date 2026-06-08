@@ -43,12 +43,13 @@ CREATE TABLE IF NOT EXISTS products (
 
 -- ---------- Üyeler ----------
 CREATE TABLE IF NOT EXISTS members (
-  id         VARCHAR(80) PRIMARY KEY,
-  name       VARCHAR(200) NOT NULL,
-  phone      VARCHAR(40),
-  email      VARCHAR(200),
-  birth_date DATE NULL,
-  joined_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  id            VARCHAR(80) PRIMARY KEY,
+  name          VARCHAR(200) NOT NULL,
+  phone         VARCHAR(40),
+  email         VARCHAR(200),
+  birth_date    DATE NULL,
+  password_hash VARCHAR(255),
+  joined_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------- Üyeye özel kodlar ----------
