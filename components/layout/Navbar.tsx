@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, UserPlus, LogIn, MessageCircle } from "lucide-react";
+import {
+  Menu,
+  X,
+  UserPlus,
+  LogIn,
+  MessageCircle,
+  UserCircle,
+} from "lucide-react";
 import BrandMark from "./BrandMark";
 import Button from "@/components/ui/Button";
 import CartButton from "@/components/cart/CartButton";
@@ -40,6 +47,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [memberAuthed, setMemberAuthed] = useState<boolean | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -59,6 +67,22 @@ export default function Navbar() {
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  useEffect(() => {
+    let active = true;
+    setMemberAuthed(null);
+    fetch("/api/member/me", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { authed: false }))
+      .then((j) => {
+        if (active) setMemberAuthed(Boolean(j?.authed));
+      })
+      .catch(() => {
+        if (active) setMemberAuthed(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
 
   return (
     <>
@@ -113,16 +137,27 @@ export default function Navbar() {
           <SearchButton />
           <WishlistIconLink />
           <CartButton />
-          <Link href="/giris" className="ml-1">
-            <Button variant="outline-light" size="sm" className="!h-10 !px-4">
-              <span>Üye Girişi</span>
-            </Button>
-          </Link>
-          <Link href="/uye-ol">
-            <Button variant="gold" size="sm" className="!h-10 !px-5">
-              <span>Üye Ol</span>
-            </Button>
-          </Link>
+          {memberAuthed ? (
+            <Link href="/hesabim" className="ml-1">
+              <Button variant="gold" size="sm" className="!h-10 !px-5">
+                <UserCircle size={16} strokeWidth={1.7} />
+                <span>Hesabım</span>
+              </Button>
+            </Link>
+          ) : memberAuthed === false ? (
+            <>
+              <Link href="/giris" className="ml-1">
+                <Button variant="outline-light" size="sm" className="!h-10 !px-4">
+                  <span>Üye Girişi</span>
+                </Button>
+              </Link>
+              <Link href="/uye-ol">
+                <Button variant="gold" size="sm" className="!h-10 !px-5">
+                  <span>Üye Ol</span>
+                </Button>
+              </Link>
+            </>
+          ) : null}
         </div>
 
         {/* Mobile cart + toggle area */}
@@ -186,19 +221,42 @@ export default function Navbar() {
             >
               <span className="eyebrow mb-2">Floria Garden Hesabınız</span>
 
-              <Link href="/uye-ol" onClick={() => setOpen(false)} className="w-full max-w-sm">
-                <Button variant="gold" size="lg" className="w-full">
-                  <UserPlus size={18} strokeWidth={1.7} />
-                  <span>Üye Ol</span>
-                </Button>
-              </Link>
+              {memberAuthed ? (
+                <Link
+                  href="/hesabim"
+                  onClick={() => setOpen(false)}
+                  className="w-full max-w-sm"
+                >
+                  <Button variant="gold" size="lg" className="w-full">
+                    <UserCircle size={18} strokeWidth={1.7} />
+                    <span>Hesabım</span>
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/uye-ol"
+                    onClick={() => setOpen(false)}
+                    className="w-full max-w-sm"
+                  >
+                    <Button variant="gold" size="lg" className="w-full">
+                      <UserPlus size={18} strokeWidth={1.7} />
+                      <span>Üye Ol</span>
+                    </Button>
+                  </Link>
 
-              <Link href="/giris" onClick={() => setOpen(false)} className="w-full max-w-sm">
-                <Button variant="outline-light" size="lg" className="w-full">
-                  <LogIn size={18} strokeWidth={1.7} />
-                  <span>Üye Girişi</span>
-                </Button>
-              </Link>
+                  <Link
+                    href="/giris"
+                    onClick={() => setOpen(false)}
+                    className="w-full max-w-sm"
+                  >
+                    <Button variant="outline-light" size="lg" className="w-full">
+                      <LogIn size={18} strokeWidth={1.7} />
+                      <span>Üye Girişi</span>
+                    </Button>
+                  </Link>
+                </>
+              )}
 
               <a
                 href={whatsappLink()}
