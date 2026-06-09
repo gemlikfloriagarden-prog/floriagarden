@@ -7,6 +7,7 @@ import type {
   AdminCategory,
   AdminProduct,
   Member,
+  MemberAddress,
   MemberCode,
   GeneralCode,
   DeliveryZone,
@@ -84,6 +85,48 @@ function toDeliveryStep(r: Row): DeliveryStep {
   };
 }
 
+function toOrder(r: Row, items: OrderItem[] = []): Order {
+  return {
+    id: s(r.id),
+    orderNo: s(r.order_no),
+    createdAt: s(r.created_at),
+    customerName: s(r.customer_name),
+    customerPhone: s(r.customer_phone),
+    customerEmail: opt(r.customer_email),
+    recipientName: s(r.recipient_name),
+    recipientPhone: s(r.recipient_phone),
+    address: s(r.address),
+    surprise: n(r.surprise) === 1,
+    items,
+    deliveryZone: s(r.delivery_zone),
+    deliveryDate: s(r.delivery_date),
+    deliverySlot: s(r.delivery_slot),
+    payment: (s(r.payment) || "nakit") as Order["payment"],
+    status: (s(r.status) || "yeni") as Order["status"],
+    cardNote: s(r.card_note),
+    adminNote: s(r.admin_note),
+  };
+}
+
+function toMemberAddress(r: Row): MemberAddress {
+  return {
+    id: s(r.id),
+    memberId: s(r.member_id),
+    label: s(r.label) || "Adres",
+    recipientName: s(r.recipient_name),
+    phone: s(r.phone),
+    cityDistrict: s(r.city_district),
+    address: s(r.address),
+    note: opt(r.note),
+    isDefault: n(r.is_default) === 1,
+    createdAt: s(r.created_at),
+  };
+}
+
+function phoneDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
 /* ════════════════════════════════════════════════
    OKUMA — tüm admin verisi
    ════════════════════════════════════════════════ */
@@ -146,26 +189,9 @@ export async function getAdminData(): Promise<AdminData> {
     (itemsByOrder.get(oid) ?? itemsByOrder.set(oid, []).get(oid)!).push(item);
   }
 
-  const orders: Order[] = orderRows.map((r) => ({
-    id: s(r.id),
-    orderNo: s(r.order_no),
-    createdAt: s(r.created_at),
-    customerName: s(r.customer_name),
-    customerPhone: s(r.customer_phone),
-    customerEmail: opt(r.customer_email),
-    recipientName: s(r.recipient_name),
-    recipientPhone: s(r.recipient_phone),
-    address: s(r.address),
-    surprise: n(r.surprise) === 1,
-    items: itemsByOrder.get(s(r.id)) ?? [],
-    deliveryZone: s(r.delivery_zone),
-    deliveryDate: s(r.delivery_date),
-    deliverySlot: s(r.delivery_slot),
-    payment: (s(r.payment) || "nakit") as Order["payment"],
-    status: (s(r.status) || "yeni") as Order["status"],
-    cardNote: s(r.card_note),
-    adminNote: s(r.admin_note),
-  }));
+  const orders: Order[] = orderRows.map((r) =>
+    toOrder(r, itemsByOrder.get(s(r.id)) ?? []),
+  );
 
   return {
     categories: categories.map(toCategory),
@@ -459,6 +485,17 @@ export async function getMemberAuthByEmail(
   return { id: s(rows[0].id), passwordHash: s(rows[0].password_hash) };
 }
 
+export async function getMemberAuthById(
+  id: string,
+): Promise<{ id: string; passwordHash: string } | null> {
+  const rows = await query<Row>(
+    "SELECT id, password_hash FROM members WHERE id = ? AND password_hash IS NOT NULL AND password_hash <> '' LIMIT 1",
+    [id],
+  );
+  if (!rows[0]) return null;
+  return { id: s(rows[0].id), passwordHash: s(rows[0].password_hash) };
+}
+
 /** Şifre sıfırlama için: e-postaya göre en yeni üyeyi bul. */
 export async function getMemberIdByEmail(email: string): Promise<string | null> {
   if (!email) return null;
@@ -536,6 +573,158 @@ export async function getMemberWithCodes(id: string): Promise<Member | null> {
       createdAt: s(c.created_at),
     })),
   };
+}
+
+export async function memberEmailUsedByOther(
+  email: string,
+  memberId: string,
+): Promise<boolean> {
+  if (!email) return false;
+  const rows = await query<Row>(
+    "SELECT id FROM members WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) AND id <> ? LIMIT 1",
+    [email, memberId],
+  );
+  return rows.length > 0;
+}
+
+export async function updateMemberProfile(
+  memberId: string,
+  patch: {
+    name: string;
+    phone: string;
+    email: string;
+    birthDate?: string;
+  },
+) {
+  await execute(
+    "UPDATE members SET name=?, phone=?, email=?, birth_date=? WHERE id=?",
+    [
+      patch.name,
+      patch.phone,
+      patch.email,
+      patch.birthDate || null,
+      memberId,
+    ],
+  );
+}
+
+export async function getMemberOrders(member: Member): Promise<Order[]> {
+  const email = member.email.trim().toLowerCase();
+  const last10 = phoneDigits(member.phone).slice(-10);
+  if (!email && !last10) return [];
+
+  const params: (string | number | boolean | null | Date)[] = [];
+  const filters: string[] = [];
+  if (email) {
+    filters.push("LOWER(TRIM(customer_email)) = LOWER(TRIM(?))");
+    params.push(email);
+  }
+  if (last10) {
+    filters.push(
+      "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(customer_phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') LIKE ?",
+    );
+    params.push(`%${last10}%`);
+  }
+
+  const orderRows = await query<Row>(
+    `SELECT * FROM orders WHERE ${filters.join(
+      " OR ",
+    )} ORDER BY created_at DESC LIMIT 50`,
+    params,
+  );
+  if (orderRows.length === 0) return [];
+
+  const orderIds = orderRows.map((r) => s(r.id));
+  const placeholders = orderIds.map(() => "?").join(",");
+  const orderItemRows = await query<Row>(
+    `SELECT * FROM order_items WHERE order_id IN (${placeholders})`,
+    orderIds,
+  );
+
+  const itemsByOrder = new Map<string, OrderItem[]>();
+  for (const r of orderItemRows) {
+    const oid = s(r.order_id);
+    const item: OrderItem = {
+      productId: opt(r.product_id),
+      name: s(r.name),
+      price: n(r.price),
+      quantity: n(r.quantity),
+    };
+    (itemsByOrder.get(oid) ?? itemsByOrder.set(oid, []).get(oid)!).push(item);
+  }
+
+  return orderRows.map((r) => toOrder(r, itemsByOrder.get(s(r.id)) ?? []));
+}
+
+export async function getMemberAddresses(
+  memberId: string,
+): Promise<MemberAddress[]> {
+  try {
+    const rows = await query<Row>(
+      "SELECT * FROM member_addresses WHERE member_id = ? ORDER BY is_default DESC, created_at DESC",
+      [memberId],
+    );
+    return rows.map(toMemberAddress);
+  } catch {
+    return [];
+  }
+}
+
+export async function createMemberAddress(
+  memberId: string,
+  address: Omit<MemberAddress, "memberId" | "createdAt">,
+) {
+  if (address.isDefault) {
+    await execute("UPDATE member_addresses SET is_default = 0 WHERE member_id = ?", [
+      memberId,
+    ]);
+  }
+  await execute(
+    "INSERT INTO member_addresses (id,member_id,label,recipient_name,phone,city_district,address,note,is_default) VALUES (?,?,?,?,?,?,?,?,?)",
+    [
+      address.id,
+      memberId,
+      address.label,
+      address.recipientName,
+      address.phone,
+      address.cityDistrict,
+      address.address,
+      address.note ?? null,
+      address.isDefault ? 1 : 0,
+    ],
+  );
+}
+
+export async function updateMemberAddress(
+  memberId: string,
+  address: Omit<MemberAddress, "memberId" | "createdAt">,
+) {
+  if (address.isDefault) {
+    await execute("UPDATE member_addresses SET is_default = 0 WHERE member_id = ?", [
+      memberId,
+    ]);
+  }
+  await execute(
+    "UPDATE member_addresses SET label=?, recipient_name=?, phone=?, city_district=?, address=?, note=?, is_default=? WHERE id=? AND member_id=?",
+    [
+      address.label,
+      address.recipientName,
+      address.phone,
+      address.cityDistrict,
+      address.address,
+      address.note ?? null,
+      address.isDefault ? 1 : 0,
+      address.id,
+      memberId,
+    ],
+  );
+}
+
+export async function deleteMemberAddress(memberId: string, addressId: string) {
+  await execute("DELETE FROM member_addresses WHERE id=? AND member_id=?", [
+    addressId,
+    memberId,
+  ]);
 }
 
 export async function addMemberCode(memberId: string, c: MemberCode) {

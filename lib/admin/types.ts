@@ -75,6 +75,19 @@ export type Member = {
   codes: MemberCode[];
 };
 
+export type MemberAddress = {
+  id: string;
+  memberId: string;
+  label: string;
+  recipientName: string;
+  phone: string;
+  cityDistrict: string;
+  address: string;
+  note?: string;
+  isDefault: boolean;
+  createdAt: string;
+};
+
 /** Teslimat bölgesi (süre + ücret) */
 export type DeliveryZone = {
   id: string;
