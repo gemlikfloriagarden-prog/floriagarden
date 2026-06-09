@@ -17,11 +17,14 @@ export default function CouponInput({ variant = "dark" }: Props) {
   const { toast } = useToast();
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!code.trim()) return;
-    const result = applyCoupon(code);
+    if (!code.trim() || checking) return;
+    setChecking(true);
+    const result = await applyCoupon(code);
+    setChecking(false);
     if (result.ok) {
       toast({
         title: "Kupon uygulandı",
@@ -130,14 +133,14 @@ export default function CouponInput({ variant = "dark" }: Props) {
         />
         <button
           type="submit"
-          disabled={!code.trim()}
+          disabled={!code.trim() || checking}
           className={
             isDark
               ? "h-11 px-5 rounded-full bg-rose-gold-gradient text-coffee text-sm font-medium disabled:opacity-40 disabled:pointer-events-none transition-all hover:brightness-105"
               : "h-11 px-5 rounded-full bg-bordo-gradient text-cream text-sm font-medium disabled:opacity-40 disabled:pointer-events-none transition-all hover:brightness-110"
           }
         >
-          Uygula
+          {checking ? "Bakılıyor" : "Uygula"}
         </button>
       </div>
       {error && (

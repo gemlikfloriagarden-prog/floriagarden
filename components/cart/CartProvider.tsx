@@ -18,7 +18,8 @@ import {
 } from "@/lib/cart/reducer";
 import type { CartItem, CartState } from "@/lib/cart/types";
 import {
-  validateCoupon,
+  calculateCouponDiscount,
+  validateCouponValue,
   type Coupon,
   type CouponValidation,
 } from "@/lib/cart/coupons";
@@ -37,7 +38,7 @@ type CartContextValue = {
   total: number;
   /** Aktif kupon (varsa) */
   coupon: Coupon | null;
-  applyCoupon: (code: string) => CouponValidation;
+  applyCoupon: (code: string) => Promise<CouponValidation>;
   removeCoupon: () => void;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   removeItem: (productId: string) => void;
@@ -102,32 +103,71 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () => state.items.reduce((sum, i) => sum + i.price * i.quantity, 0),
     [state.items],
   );
+  const couponCode = coupon?.code;
 
-  // Sepet tutarı düşerse min sepet şartını sağlamayan kuponu otomatik kaldır
+  const validateCouponFromServer = useCallback(
+    async (code: string, amount = subtotal): Promise<CouponValidation> => {
+      try {
+        const res = await fetch("/api/coupon/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, subtotal: amount }),
+        });
+        const json = (await res.json()) as CouponValidation;
+        if (!res.ok || !json.ok) {
+          return {
+            ok: false,
+            reason:
+              !json.ok && json.reason
+                ? json.reason
+                : "Kupon şu anda kontrol edilemedi.",
+          };
+        }
+        return json;
+      } catch {
+        return { ok: false, reason: "Kupon şu anda kontrol edilemedi." };
+      }
+    },
+    [subtotal],
+  );
+
+  // Sepet tutarı veya veritabanındaki kod değişirse kuponu yeniden kontrol et.
   useEffect(() => {
-    if (!coupon) return;
-    const result = validateCoupon(coupon.code, subtotal);
-    if (!result.ok) setCoupon(null);
-  }, [coupon, subtotal]);
+    if (!couponCode) return;
+    let active = true;
+    void validateCouponFromServer(couponCode, subtotal).then((result) => {
+      if (!active) return;
+      if (result.ok) {
+        setCoupon(result.coupon);
+      } else {
+        setCoupon(null);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [couponCode, subtotal, validateCouponFromServer]);
 
   const applyCoupon = useCallback(
-    (code: string): CouponValidation => {
-      const result = validateCoupon(code, subtotal);
+    async (code: string): Promise<CouponValidation> => {
+      const result = await validateCouponFromServer(code, subtotal);
       if (result.ok) setCoupon(result.coupon);
       return result;
     },
-    [subtotal],
+    [subtotal, validateCouponFromServer],
   );
 
   const removeCoupon = useCallback(() => setCoupon(null), []);
 
   const value = useMemo<CartContextValue>(() => {
     const totalQuantity = state.items.reduce((sum, i) => sum + i.quantity, 0);
-    const validation = coupon
-      ? validateCoupon(coupon.code, subtotal)
-      : null;
+    const validation = coupon ? validateCouponValue(coupon, subtotal) : null;
     const discount =
-      validation && validation.ok ? validation.discount : 0;
+      validation && validation.ok
+        ? validation.discount
+        : coupon
+          ? calculateCouponDiscount(coupon, subtotal)
+          : 0;
     const total = Math.max(0, subtotal - discount);
 
     return {

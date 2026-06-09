@@ -12,26 +12,24 @@ export type Coupon = {
   expiresAt?: string;
 };
 
-/**
- * Statik kupon havuzu — gerçek kullanım hesabı için backend gerek
- * ama indirim doğrulaması ve UX akışı tamamen client-side çalışır.
- */
-export const COUPONS: Coupon[] = [];
-
 export type CouponValidation =
   | { ok: true; coupon: Coupon; discount: number }
   | { ok: false; reason: string };
 
-export function validateCoupon(
-  code: string,
+export function calculateCouponDiscount(coupon: Coupon, subtotal: number) {
+  const value = Math.max(0, Number(coupon.value) || 0);
+  const discount =
+    coupon.type === "percent"
+      ? Math.round((subtotal * Math.min(value, 100)) / 100)
+      : value;
+  return Math.min(subtotal, discount);
+}
+
+export function validateCouponValue(
+  coupon: Coupon,
   subtotal: number,
   now = new Date(),
 ): CouponValidation {
-  const normalized = code.trim().toUpperCase();
-  const coupon = COUPONS.find((c) => c.code === normalized);
-  if (!coupon) {
-    return { ok: false, reason: "Kupon kodu geçersiz." };
-  }
   if (coupon.expiresAt && new Date(coupon.expiresAt) < now) {
     return { ok: false, reason: "Kuponun süresi dolmuş." };
   }
@@ -45,9 +43,5 @@ export function validateCoupon(
       }).format(coupon.minSubtotal)} üzeri sepetlerde geçerlidir.`,
     };
   }
-  const discount =
-    coupon.type === "percent"
-      ? Math.round((subtotal * coupon.value) / 100)
-      : coupon.value;
-  return { ok: true, coupon, discount };
+  return { ok: true, coupon, discount: calculateCouponDiscount(coupon, subtotal) };
 }

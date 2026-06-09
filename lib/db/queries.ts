@@ -568,6 +568,55 @@ export async function removeGeneralCode(code: string) {
   await execute("DELETE FROM general_codes WHERE code=?", [code]);
 }
 
+export async function validateDiscountCode(code: string, memberId: string | null) {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) return null;
+
+  const generalRows = await query<Row>(
+    "SELECT * FROM general_codes WHERE code = ? LIMIT 1",
+    [normalized],
+  );
+  const general = generalRows[0];
+  if (general) {
+    return {
+      code: s(general.code),
+      type: s(general.discount_type) === "fixed" ? "fixed" : "percent",
+      value: n(general.discount_value),
+      description:
+        opt(general.note) ??
+        (s(general.discount_type) === "fixed"
+          ? `${n(general.discount_value)} TL indirim`
+          : `%${n(general.discount_value)} indirim`),
+    };
+  }
+
+  const memberRows = await query<Row>(
+    "SELECT * FROM member_codes WHERE code = ? LIMIT 1",
+    [normalized],
+  );
+  const memberCode = memberRows[0];
+  if (!memberCode) return null;
+  if (!memberId || s(memberCode.member_id) !== memberId) {
+    return {
+      code: s(memberCode.code),
+      type: "member_only",
+      value: 0,
+      description: "",
+    };
+  }
+
+  return {
+    code: s(memberCode.code),
+    type: s(memberCode.discount_type) === "fixed" ? "fixed" : "percent",
+    value: n(memberCode.discount_value),
+    description:
+      opt(memberCode.note) ??
+      (s(memberCode.discount_type) === "fixed"
+        ? `${n(memberCode.discount_value)} TL size özel indirim`
+        : `%${n(memberCode.discount_value)} size özel indirim`),
+  };
+}
+
 /* ════════════════════════════════════════════════
    YAZMA — teslimat
    ════════════════════════════════════════════════ */
