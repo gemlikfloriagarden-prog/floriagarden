@@ -46,7 +46,7 @@ async function logout() {
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname() ?? "";
   return (
-    <nav className="flex flex-col gap-1.5">
+    <nav className="flex flex-col gap-1 md:gap-1.5">
       {NAV.map(({ href, label, icon: Icon, exact }) => {
         const active = isActive(pathname, href, exact);
         return (
@@ -55,7 +55,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             href={href}
             onClick={onNavigate}
             className={cn(
-              "group flex items-center gap-3 rounded-2xl px-4 h-12 text-sm font-medium transition-all duration-200",
+              "group flex items-center gap-3 rounded-2xl px-3 md:px-4 h-11 md:h-12 text-sm font-medium transition-all duration-200",
               active
                 ? "bg-cream text-bordo shadow-soft"
                 : "text-cream/75 hover:text-cream hover:bg-cream/10",
@@ -77,8 +77,10 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 function Brand() {
   return (
     <div className="flex flex-col leading-tight">
-      <span className="font-display text-2xl text-cream">Floria Garden</span>
-      <span className="text-[0.6rem] uppercase tracking-ultra-wide text-rose-gold/80">
+      <span className="font-display text-[1.55rem] md:text-2xl text-cream">
+        Floria Garden
+      </span>
+      <span className="text-[0.55rem] md:text-[0.6rem] uppercase tracking-[0.35em] md:tracking-ultra-wide text-rose-gold/80">
         Yönetim Paneli
       </span>
     </div>
@@ -119,15 +121,15 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Mobil üst bar */}
-      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between bg-gradient-to-r from-bordo to-bordo-dark px-4 h-16 border-b border-rose-gold/15">
+      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between bg-gradient-to-r from-bordo to-bordo-dark px-4 h-14 border-b border-rose-gold/15 shadow-card">
         <Brand />
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
           aria-label="Menüyü aç"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-cream/20 text-cream"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-cream/20 text-cream"
         >
-          <Menu size={20} strokeWidth={1.7} />
+          <Menu size={18} strokeWidth={1.8} />
         </button>
       </header>
 
@@ -149,17 +151,17 @@ export default function AdminShell({ children }: { children: ReactNode }) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "tween", duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="md:hidden fixed inset-y-0 left-0 z-50 w-[80%] max-w-xs flex flex-col bg-gradient-to-b from-bordo via-bordo-dark to-wine p-5"
+              className="md:hidden fixed inset-y-0 left-0 z-50 w-[82%] max-w-[18rem] flex flex-col bg-gradient-to-b from-bordo via-bordo-dark to-wine p-4"
             >
-              <div className="flex items-center justify-between px-2 pt-2 pb-6">
+              <div className="flex items-center justify-between px-1 pt-1 pb-5">
                 <Brand />
                 <button
                   type="button"
                   onClick={() => setMobileOpen(false)}
                   aria-label="Menüyü kapat"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-cream/20 text-cream"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-cream/20 text-cream"
                 >
-                  <X size={18} strokeWidth={1.7} />
+                  <X size={17} strokeWidth={1.8} />
                 </button>
               </div>
               <NavLinks onNavigate={() => setMobileOpen(false)} />
@@ -194,7 +196,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
             Bakım modu açık — ziyaretçiler bakım sayfasını görüyor.
           </div>
         )}
-        <div className="px-5 sm:px-8 py-8 md:py-12 max-w-5xl mx-auto">
+        <div className="px-4 sm:px-8 py-6 md:py-12 max-w-5xl mx-auto">
           {hydrated ? (
             children
           ) : (

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils/cn";
 
 /* Ortak input/label stilleri */
 export const adminInput =
-  "w-full rounded-2xl bg-cream-soft border border-rose-gold/25 px-4 h-12 text-sm text-coffee placeholder:text-coffee/40 focus:outline-none focus:border-bordo focus:bg-white transition-colors";
+  "w-full rounded-xl sm:rounded-2xl bg-cream-soft border border-rose-gold/25 px-3.5 sm:px-4 h-11 sm:h-12 text-sm text-coffee placeholder:text-coffee/40 focus:outline-none focus:border-bordo focus:bg-white transition-colors";
 
 export const adminLabel =
   "text-xs uppercase tracking-wider2 text-rose-goldDark mb-1.5 block";
@@ -24,9 +24,11 @@ export function AdminPageHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+    <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end justify-between gap-3 sm:gap-4 mb-5 sm:mb-8">
       <div className="flex flex-col gap-1.5">
-        <h1 className="font-display text-3xl md:text-4xl text-coffee">{title}</h1>
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-coffee leading-tight">
+          {title}
+        </h1>
         {description && (
           <p className="text-sm text-coffee/60 max-w-xl leading-relaxed">
             {description}
@@ -49,7 +51,7 @@ export function AdminCard({
   return (
     <div
       className={cn(
-        "rounded-3xl bg-white border border-rose-gold/20 shadow-soft",
+        "rounded-2xl sm:rounded-3xl bg-white border border-rose-gold/20 shadow-soft",
         className,
       )}
     >

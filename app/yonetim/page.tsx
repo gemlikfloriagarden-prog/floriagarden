@@ -214,35 +214,40 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="font-display text-3xl md:text-4xl text-coffee">
+      <div className="mb-5 sm:mb-8">
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-coffee leading-tight">
           Hoş geldiniz 🌿
         </h1>
-        <p className="mt-1.5 text-sm text-coffee/60">
+        <p className="mt-1.5 text-sm sm:text-base text-coffee/60 leading-relaxed max-w-2xl">
           Floria Garden yönetim panelinden kategorileri, ürünleri ve üyeleri
           yönetebilirsiniz.
         </p>
       </div>
 
       {/* İstatistik kartları */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
         {stats.map(({ label, value, icon: Icon, href }) => (
           <Link key={label} href={href}>
-            <AdminCard className="p-6 h-full hover:border-rose-gold/45 hover:shadow-card transition-all duration-300 group">
+            <AdminCard className="p-3.5 sm:p-5 lg:p-6 min-h-[116px] sm:min-h-[150px] h-full hover:border-rose-gold/45 hover:shadow-card transition-all duration-300 group">
               <div className="flex items-start justify-between">
-                <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-gold-gradient text-coffee">
-                  <Icon size={22} strokeWidth={1.6} />
+                <span className="inline-flex h-9 w-9 sm:h-11 sm:w-11 lg:h-12 lg:w-12 items-center justify-center rounded-xl sm:rounded-2xl bg-rose-gold-gradient text-coffee">
+                  <Icon size={18} className="sm:hidden" strokeWidth={1.7} />
+                  <Icon
+                    size={21}
+                    className="hidden sm:block"
+                    strokeWidth={1.6}
+                  />
                 </span>
                 <ArrowRight
-                  size={18}
+                  size={16}
                   strokeWidth={1.7}
                   className="text-coffee/30 group-hover:text-bordo group-hover:translate-x-1 transition-all duration-300"
                 />
               </div>
-              <p className="mt-5 font-display text-4xl text-coffee tabular-nums">
+              <p className="mt-4 sm:mt-5 font-display text-2xl sm:text-3xl lg:text-4xl leading-none text-coffee tabular-nums truncate">
                 {value}
               </p>
-              <p className="text-sm text-coffee/55 mt-0.5">{label}</p>
+              <p className="text-xs sm:text-sm text-coffee/55 mt-1">{label}</p>
             </AdminCard>
           </Link>
         ))}
@@ -251,13 +256,13 @@ export default function AdminDashboard() {
       {/* Doğum günleri + Stok uyarıları */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
         {/* Yaklaşan doğum günleri */}
-        <AdminCard className="p-6">
+        <AdminCard className="p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-gold-gradient text-coffee">
+            <span className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl sm:rounded-2xl bg-rose-gold-gradient text-coffee">
               <Cake size={18} strokeWidth={1.7} />
             </span>
             <div>
-              <h2 className="font-display text-2xl text-coffee leading-tight">
+              <h2 className="font-display text-xl sm:text-2xl text-coffee leading-tight">
                 Yaklaşan Doğum Günleri
               </h2>
               <p className="text-sm text-coffee/55">
@@ -320,13 +325,13 @@ export default function AdminDashboard() {
         </AdminCard>
 
         {/* Stok uyarıları */}
-        <AdminCard className="p-6">
+        <AdminCard className="p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-bordo-gradient text-cream">
+            <span className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl sm:rounded-2xl bg-bordo-gradient text-cream">
               <PackageX size={18} strokeWidth={1.7} />
             </span>
             <div>
-              <h2 className="font-display text-2xl text-coffee leading-tight">
+              <h2 className="font-display text-xl sm:text-2xl text-coffee leading-tight">
                 Stok Uyarıları
               </h2>
               <p className="text-sm text-coffee/55">
@@ -393,13 +398,13 @@ export default function AdminDashboard() {
       </div>
 
       {/* Genel kodlar */}
-      <AdminCard className="p-6 mb-8">
+      <AdminCard className="p-4 sm:p-6 mb-8">
         <div className="flex items-center gap-3 mb-1">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-bordo-gradient text-cream">
+          <span className="inline-flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl sm:rounded-2xl bg-bordo-gradient text-cream">
             <Ticket size={18} strokeWidth={1.7} />
           </span>
           <div>
-            <h2 className="font-display text-2xl text-coffee leading-tight">
+            <h2 className="font-display text-xl sm:text-2xl text-coffee leading-tight">
               Genel Kodlar
             </h2>
             <p className="text-sm text-coffee/55">
