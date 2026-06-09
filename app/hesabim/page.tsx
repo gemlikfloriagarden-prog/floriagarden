@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   BookOpen,
   Check,
@@ -25,10 +26,7 @@ import Button from "@/components/ui/Button";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useWishlist } from "@/components/wishlist/WishlistProvider";
 import { useCatalog } from "@/lib/catalog-client";
-import {
-  notifyMemberAuthChanged,
-  setCachedMemberAuthed,
-} from "@/lib/auth/member-session-client";
+import { notifyMemberAuthChanged } from "@/lib/auth/member-session-client";
 import { orderTotal, STATUS_LABEL, STATUS_STYLE } from "@/lib/admin/orders";
 import { formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -108,6 +106,7 @@ function formatDate(value?: string) {
 }
 
 export default function AccountPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const { ids: favoriteIds } = useWishlist();
   const { products } = useCatalog();
@@ -180,13 +179,13 @@ export default function AccountPage() {
   }, []);
 
   const logout = async () => {
+    setBusy("logout");
     try {
       await fetch("/api/member/logout", { method: "POST" });
     } catch {
       /* yok say */
     }
-    setCachedMemberAuthed(false);
-    window.location.assign("/");
+    router.push("/");
   };
 
   const saveProfile = async (event: FormEvent) => {
@@ -417,7 +416,8 @@ export default function AccountPage() {
           <button
             type="button"
             onClick={logout}
-            className="inline-flex w-fit items-center gap-1.5 rounded-full border border-rose-gold/30 text-coffee/70 hover:text-bordo hover:border-bordo px-4 h-10 text-sm transition-colors"
+            disabled={busy === "logout"}
+            className="inline-flex w-fit items-center gap-1.5 rounded-full border border-rose-gold/30 text-coffee/70 hover:text-bordo hover:border-bordo px-4 h-10 text-sm transition-colors disabled:opacity-60 disabled:pointer-events-none"
           >
             <LogOut size={15} strokeWidth={1.7} />
             Çıkış
