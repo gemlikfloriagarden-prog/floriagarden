@@ -81,10 +81,10 @@ export default function ProductCard({ product, index }: Props) {
               <BotanicalArt seed={product.id} label={product.name} />
             )}
           </motion.div>
-          {/* Hover'da bordo yıkaması */}
+          {/* Hover'da görseli kapatmayan hafif vurgu */}
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-br from-bordo-500 via-bordo-700 to-bordo-dark opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            className="absolute inset-0 bg-gradient-to-br from-bordo-500/15 via-bordo-700/10 to-bordo-dark/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
           />
         </Link>
 
