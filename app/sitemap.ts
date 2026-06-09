@@ -27,8 +27,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     "",
     "/urunler",
-    "/sepet",
-    "/favoriler",
     "/hakkimizda",
     "/iletisim",
     "/sss",

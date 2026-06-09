@@ -25,6 +25,8 @@ export default function OrganizationJsonLd() {
       "@type": "PostalAddress",
       streetAddress: SITE.address,
       addressLocality: SITE.city,
+      addressRegion: "Bursa",
+      postalCode: "16600",
       addressCountry: "TR",
     },
   };
