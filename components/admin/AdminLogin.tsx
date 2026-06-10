@@ -1,20 +1,21 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Lock, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Lock, Eye, EyeOff, ShieldCheck, ArrowLeft } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(false);
+    setError(null);
     try {
       const res = await fetch("/api/admin/login", {
         method: "POST",
@@ -24,10 +25,11 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
       if (res.ok) {
         onSuccess();
       } else {
-        setError(true);
+        const j = await res.json().catch(() => ({}));
+        setError(j?.error || "Şifre hatalı. Lütfen tekrar deneyin.");
       }
     } catch {
-      setError(true);
+      setError("Bağlantı hatası. Lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
     }
@@ -73,11 +75,11 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  setError(false);
+                  setError(null);
                 }}
                 autoFocus
                 placeholder="Şifre"
-                aria-invalid={error}
+                aria-invalid={Boolean(error)}
                 className={`w-full rounded-2xl bg-cream-soft border ${
                   error ? "border-bordo" : "border-rose-gold/25"
                 } pl-11 pr-11 h-12 text-sm text-coffee placeholder:text-coffee/40 focus:outline-none focus:border-bordo focus:bg-white transition-colors`}
@@ -91,11 +93,7 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
                 {show ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {error && (
-              <p className="mt-2 text-xs text-bordo">
-                Şifre hatalı. Lütfen tekrar deneyin.
-              </p>
-            )}
+            {error && <p className="mt-2 text-xs text-bordo">{error}</p>}
           </div>
 
           <Button
@@ -112,6 +110,16 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
         <p className="mt-6 text-center text-[0.7rem] text-coffee/40 leading-relaxed">
           Bu alan yalnızca yöneticiye özeldir. Giriş sunucu oturumuyla korunur.
         </p>
+
+        <div className="mt-5 pt-5 border-t border-rose-gold/15 flex justify-center">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs tracking-wide text-coffee/55 hover:text-bordo transition-colors"
+          >
+            <ArrowLeft size={14} strokeWidth={1.8} />
+            <span>Siteye geri dön</span>
+          </Link>
+        </div>
       </motion.div>
     </div>
   );
