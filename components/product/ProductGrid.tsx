@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Tag, PackageCheck, RotateCcw } from "lucide-react";
+import { Sparkles, Tag, PackageCheck, RotateCcw, ChevronDown } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
 import EmptyState from "@/components/ui/EmptyState";
 import FadeIn from "@/components/motion/FadeIn";
@@ -175,20 +175,28 @@ export default function ProductGrid({ products, showToolbar = true }: Props) {
             >
               Sırala:
             </label>
-            <select
-              id="sort"
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-              aria-label="Ürünleri sırala"
-              className="cursor-pointer rounded-full border border-rose-gold/30 bg-cream-soft pl-4 h-9 text-sm text-coffee font-medium hover:border-rose-gold focus:outline-none focus:border-rose-gold focus:ring-2 focus:ring-rose-gold/20 transition-colors"
-              style={{ colorScheme: "light" }}
-            >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o.key} value={o.key}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                id="sort"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortKey)}
+                aria-label="Ürünleri sırala"
+                className="appearance-none cursor-pointer rounded-full border border-rose-gold/30 bg-cream-soft pl-4 pr-9 h-9 text-sm text-coffee font-medium hover:border-rose-gold focus:outline-none focus:border-rose-gold focus:ring-2 focus:ring-rose-gold/20 transition-colors"
+                style={{ colorScheme: "light" }}
+              >
+                {SORT_OPTIONS.map((o) => (
+                  <option key={o.key} value={o.key}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={15}
+                strokeWidth={1.8}
+                aria-hidden
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-coffee/50"
+              />
+            </div>
           </div>
         </div>
       )}
