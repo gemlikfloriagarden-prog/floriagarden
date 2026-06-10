@@ -15,6 +15,7 @@ import {
   Sparkles,
   Gift,
   ChevronRight,
+  MessageCircle,
 } from "lucide-react";
 import {
   daysUntilBirthday,
@@ -47,6 +48,15 @@ function formatDate(iso?: string) {
   } catch {
     return "—";
   }
+}
+
+/** Telefonu WhatsApp (wa.me) için uluslararası rakam dizisine çevirir.
+ *  "+90 552 267 29 03" → "905522672903". Geçersizse "" döner. */
+function whatsappDigits(phone: string): string {
+  let d = (phone ?? "").replace(/\D/g, "");
+  if (d.startsWith("0")) d = d.slice(1); // baştaki 0'ı at
+  if (!d.startsWith("90") && d.length === 10) d = "90" + d; // TR yerel → +90
+  return d.length >= 10 ? d : "";
 }
 
 function discountLabel(c: MemberCode) {
@@ -227,7 +237,12 @@ export default function UyelerPage() {
           <div className="flex flex-col gap-6">
             {/* Bilgiler */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <InfoRow icon={Phone} label="Telefon" value={member.phone} />
+              <InfoRow
+                icon={Phone}
+                label="Telefon"
+                value={member.phone}
+                whatsapp={whatsappDigits(member.phone) || undefined}
+              />
               <InfoRow icon={Mail} label="E-posta" value={member.email} />
               <InfoRow
                 icon={Cake}
@@ -478,22 +493,37 @@ function InfoRow({
   icon: Icon,
   label,
   value,
+  whatsapp,
 }: {
   icon: typeof Phone;
   label: string;
   value: string;
+  /** Doluysa sağda WhatsApp kısayolu gösterir (wa.me rakam dizisi). */
+  whatsapp?: string;
 }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-cream-soft px-4 py-3">
       <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-bordo border border-rose-gold/20">
         <Icon size={15} strokeWidth={1.7} />
       </span>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-[0.65rem] uppercase tracking-wider2 text-rose-goldDark">
           {label}
         </p>
         <p className="text-sm text-coffee truncate">{value}</p>
       </div>
+      {whatsapp && (
+        <a
+          href={`https://wa.me/${whatsapp}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="WhatsApp'tan yaz"
+          title="WhatsApp'tan yaz"
+          className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-sm hover:brightness-105 active:scale-95 transition"
+        >
+          <MessageCircle size={16} strokeWidth={1.8} />
+        </a>
+      )}
     </div>
   );
 }
