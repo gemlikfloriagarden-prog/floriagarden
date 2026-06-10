@@ -8,7 +8,9 @@ import Button from "@/components/ui/Button";
 type FormState = {
   name: string;
   email: string;
-  phone: string;
+  // Telefon: alan kodu ayrı kutuda tutulur ki numara yazarken "+90" silinmesin.
+  phoneCode: string;
+  phoneLocal: string;
   topic: string;
   message: string;
 };
@@ -16,7 +18,8 @@ type FormState = {
 const initialState: FormState = {
   name: "",
   email: "",
-  phone: "+90 ",
+  phoneCode: "+90",
+  phoneLocal: "",
   topic: "Genel bilgi",
   message: "",
 };
@@ -42,7 +45,8 @@ export default function ContactForm() {
     e.preventDefault();
     const errs: typeof errors = {};
     const normalizedEmail = state.email.trim().toLowerCase();
-    const phoneDigits = state.phone.replace(/\D/g, "");
+    const phone = `${state.phoneCode.trim()} ${state.phoneLocal.trim()}`.trim();
+    const phoneDigits = phone.replace(/\D/g, "");
     const hasUsefulPhone = phoneDigits.length > 4;
     if (!state.name.trim()) errs.name = "Adınız gerekli";
     if (!normalizedEmail && !hasUsefulPhone)
@@ -60,7 +64,13 @@ export default function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...state, email: normalizedEmail }),
+        body: JSON.stringify({
+          name: state.name,
+          email: normalizedEmail,
+          phone,
+          topic: state.topic,
+          message: state.message,
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok || !json?.ok) {
@@ -157,13 +167,26 @@ export default function ContactForm() {
         </Field>
 
         <Field label="Telefon">
-          <input
-            type="tel"
-            value={state.phone}
-            onChange={(e) => setState({ ...state, phone: e.target.value })}
-            placeholder="+90 5xx xxx xx xx"
-            className={inputClass}
-          />
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              inputMode="tel"
+              value={state.phoneCode}
+              onChange={(e) => setState({ ...state, phoneCode: e.target.value })}
+              aria-label="Alan kodu"
+              className="w-16 shrink-0 text-center rounded-2xl bg-cream border border-rose-gold/20 h-12 text-sm text-coffee focus:outline-none focus:border-rose-gold focus:bg-white transition-colors"
+            />
+            <input
+              type="tel"
+              inputMode="numeric"
+              value={state.phoneLocal}
+              onChange={(e) =>
+                setState({ ...state, phoneLocal: e.target.value })
+              }
+              placeholder="5xx xxx xx xx"
+              className={`${inputClass} flex-1`}
+            />
+          </div>
         </Field>
       </div>
 

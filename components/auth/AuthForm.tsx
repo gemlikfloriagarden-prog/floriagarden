@@ -14,7 +14,9 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   const isLogin = mode === "login";
   const { toast } = useToast();
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("+90 ");
+  // Telefon: alan kodu ayrı kutuda tutulur ki numara yazarken "+90" silinmesin.
+  const [phoneCode, setPhoneCode] = useState("+90");
+  const [phoneLocal, setPhoneLocal] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,7 +64,8 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     }
 
     // ── Kayıt ──
-    if (!name.trim() || !phone.trim()) {
+    const phone = `${phoneCode.trim()} ${phoneLocal.trim()}`.trim();
+    if (!name.trim() || !phoneLocal.trim()) {
       toast({ title: "Ad ve telefon gerekli", tone: "warning" });
       return;
     }
@@ -180,16 +183,30 @@ export default function AuthForm({ mode }: { mode: Mode }) {
                 />
               </Field>
 
-              <Field icon={<Phone size={16} strokeWidth={1.6} />}>
+              <div className="flex gap-2">
                 <input
                   type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Telefon (örn: 0555 000 00 00)"
-                  className={inputBase}
+                  inputMode="tel"
+                  value={phoneCode}
+                  onChange={(e) => setPhoneCode(e.target.value)}
+                  aria-label="Alan kodu"
+                  className="w-16 shrink-0 text-center rounded-2xl bg-cream-soft border border-rose-gold/25 h-12 text-sm text-coffee focus:outline-none focus:border-bordo focus:bg-white transition-colors"
                 />
-              </Field>
+                <Field
+                  icon={<Phone size={16} strokeWidth={1.6} />}
+                  className="flex-1"
+                >
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    required
+                    value={phoneLocal}
+                    onChange={(e) => setPhoneLocal(e.target.value)}
+                    placeholder="5xx xxx xx xx"
+                    className={inputBase}
+                  />
+                </Field>
+              </div>
 
               <div className="flex flex-col gap-1.5">
                 <label
@@ -379,12 +396,14 @@ export default function AuthForm({ mode }: { mode: Mode }) {
 function Field({
   icon,
   children,
+  className,
 }: {
   icon: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="relative">
+    <div className={`relative${className ? ` ${className}` : ""}`}>
       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-rose-goldDark">
         {icon}
       </span>
