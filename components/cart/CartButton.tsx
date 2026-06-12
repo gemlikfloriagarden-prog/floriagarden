@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
 import { useCart } from "./CartProvider";
 import { cn } from "@/lib/utils/cn";
@@ -30,20 +29,11 @@ export default function CartButton({ className, variant = "icon" }: Props) {
       <ShoppingBag size={18} strokeWidth={1.7} />
       {variant === "pill" && <span>Sepet</span>}
 
-      <AnimatePresence>
-        {totalQuantity > 0 && (
-          <motion.span
-            key={totalQuantity}
-            initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.4, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-rose-gold text-coffee text-[0.65rem] font-semibold tracking-tight shadow-soft"
-          >
-            {totalQuantity > 9 ? "9+" : totalQuantity}
-          </motion.span>
-        )}
-      </AnimatePresence>
+      {totalQuantity > 0 && (
+        <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center rounded-full bg-rose-gold text-coffee text-[0.65rem] font-semibold tracking-tight shadow-soft">
+          {totalQuantity > 9 ? "9+" : totalQuantity}
+        </span>
+      )}
     </button>
   );
 }

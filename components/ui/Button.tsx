@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "framer-motion";
-import { forwardRef } from "react";
+import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils/cn";
 
 type Variant = "primary" | "outline" | "outline-light" | "ghost" | "gold";
@@ -10,7 +9,7 @@ type Size = "sm" | "md" | "lg";
 type ButtonProps = {
   variant?: Variant;
   size?: Size;
-} & HTMLMotionProps<"button">;
+} & ButtonHTMLAttributes<HTMLButtonElement>;
 
 const variantClasses: Record<Variant, string> = {
   primary:
@@ -36,14 +35,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   ref,
 ) {
   return (
-    <motion.button
+    <button
       ref={ref}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-wide",
-        "transition-all duration-300 ease-silk",
+        "transition-all duration-300 ease-silk hover:-translate-y-0.5 active:scale-[0.97]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-gold/70",
         "disabled:opacity-50 disabled:pointer-events-none",
         variantClasses[variant],
@@ -53,7 +49,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
       {...props}
     >
       {children}
-    </motion.button>
+    </button>
   );
 });
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { MessageCircle, Instagram, Clock } from "lucide-react";
 import { SITE, whatsappLink } from "@/lib/constants";
 
@@ -27,12 +26,7 @@ export default function MaintenancePage() {
         }}
       />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="relative w-full max-w-lg text-center flex flex-col items-center gap-6"
-      >
+      <div className="relative w-full max-w-lg text-center flex flex-col items-center gap-6">
         {/* Marka */}
         <div className="flex flex-col items-center gap-1.5">
           <span className="font-display text-4xl text-coffee tracking-tight">
@@ -90,7 +84,7 @@ export default function MaintenancePage() {
         <p className="text-xs text-coffee/45">
           {SITE.city} · {SITE.hours}
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

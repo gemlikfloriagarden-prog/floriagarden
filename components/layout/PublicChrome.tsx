@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Navbar from "./Navbar";
 import { useMaintenance } from "@/components/maintenance/useMaintenance";
 
@@ -31,6 +31,24 @@ function isAdmin(pathname: string | null) {
   return pathname?.startsWith("/yonetim") ?? false;
 }
 
+function DeferredPublicWidgets({ children }: { children: ReactNode }) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(() => setReady(true), {
+        timeout: 1600,
+      });
+      return () => window.cancelIdleCallback(id);
+    }
+
+    const id = globalThis.setTimeout(() => setReady(true), 1200);
+    return () => globalThis.clearTimeout(id);
+  }, []);
+
+  return ready ? <>{children}</> : null;
+}
+
 export function PublicHeader() {
   const pathname = usePathname();
   const maintenance = useMaintenance();
@@ -51,10 +69,12 @@ export function PublicFooter({ children }: { children: ReactNode }) {
   return (
     <>
       {children}
-      <CartDrawer />
-      <FloatingWhatsApp />
-      <MobileBottomBar />
-      <CookieBanner />
+      <DeferredPublicWidgets>
+        <CartDrawer />
+        <FloatingWhatsApp />
+        <MobileBottomBar />
+        <CookieBanner />
+      </DeferredPublicWidgets>
     </>
   );
 }

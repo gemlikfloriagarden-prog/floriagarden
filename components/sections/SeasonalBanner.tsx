@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X, ArrowRight } from "lucide-react";
 import { getActiveCampaign, type Campaign } from "@/lib/data/campaigns";
 
@@ -85,57 +84,51 @@ export default function SeasonalBanner() {
   };
 
   return (
-    <AnimatePresence>
-      <motion.aside
-        initial={{ y: -40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: -40, opacity: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed top-0 inset-x-0 z-[55] bg-rose-gold-gradient text-coffee"
-        role="region"
-        aria-label="Kampanya bildirimi"
-      >
-        <div className="container py-2.5 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-coffee/15">
-              <Sparkles size={13} strokeWidth={1.8} />
-            </span>
-            <span className="font-medium text-sm">
-              {campaign.title}
-              {campaign.subtitle && (
-                <span className="hidden md:inline text-coffee/65 font-normal ml-2">
-                  · {campaign.subtitle}
-                </span>
-              )}
-            </span>
-            {remaining && remaining.days < 30 && (
-              <span className="hidden sm:inline text-xs bg-coffee/15 rounded-full px-3 py-0.5 tracking-wide">
-                {remaining.days > 0
-                  ? `${remaining.days} gün kaldı`
-                  : `${remaining.hours} saat kaldı`}
+    <aside
+      className="fixed top-0 inset-x-0 z-[55] bg-rose-gold-gradient text-coffee"
+      role="region"
+      aria-label="Kampanya bildirimi"
+    >
+      <div className="container py-2.5 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-coffee/15">
+            <Sparkles size={13} strokeWidth={1.8} />
+          </span>
+          <span className="font-medium text-sm">
+            {campaign.title}
+            {campaign.subtitle && (
+              <span className="hidden md:inline text-coffee/65 font-normal ml-2">
+                · {campaign.subtitle}
               </span>
             )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href={campaign.href}
-              className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider2 hover:underline underline-offset-2"
-            >
-              <span>İncele</span>
-              <ArrowRight size={12} strokeWidth={2} />
-            </Link>
-            <button
-              type="button"
-              onClick={dismiss}
-              aria-label="Kampanya bildirimini kapat"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-coffee/15 transition-colors"
-            >
-              <X size={13} strokeWidth={1.8} />
-            </button>
-          </div>
+          </span>
+          {remaining && remaining.days < 30 && (
+            <span className="hidden sm:inline text-xs bg-coffee/15 rounded-full px-3 py-0.5 tracking-wide">
+              {remaining.days > 0
+                ? `${remaining.days} gün kaldı`
+                : `${remaining.hours} saat kaldı`}
+            </span>
+          )}
         </div>
-      </motion.aside>
-    </AnimatePresence>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href={campaign.href}
+            className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider2 hover:underline underline-offset-2"
+          >
+            <span>İncele</span>
+            <ArrowRight size={12} strokeWidth={2} />
+          </Link>
+          <button
+            type="button"
+            onClick={dismiss}
+            aria-label="Kampanya bildirimini kapat"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-coffee/15 transition-colors"
+          >
+            <X size={13} strokeWidth={1.8} />
+          </button>
+        </div>
+      </div>
+    </aside>
   );
 }

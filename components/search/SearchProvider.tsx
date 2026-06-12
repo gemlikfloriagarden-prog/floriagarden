@@ -51,7 +51,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       value={{ open, openPalette, closePalette, togglePalette }}
     >
       {children}
-      <SearchPalette open={open} onClose={closePalette} />
+      {open && <SearchPalette open={open} onClose={closePalette} />}
     </SearchContext.Provider>
   );
 }

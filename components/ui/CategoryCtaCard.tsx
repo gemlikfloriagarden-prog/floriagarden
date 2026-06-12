@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { MessageCircle, Sparkles } from "lucide-react";
 import FloralPlaceholder from "./FloralPlaceholder";
 import { whatsappLink } from "@/lib/constants";
@@ -11,30 +8,23 @@ import { whatsappLink } from "@/lib/constants";
  */
 export default function CategoryCtaCard() {
   return (
-    <motion.a
+    <a
       href={whatsappLink(
         "Merhaba Floria Garden, aklımda özel bir tasarım var. Yardımcı olur musunuz?",
       )}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Size özel tasarım için WhatsApp'tan yazın"
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      style={{ willChange: "transform" }}
-      className="group relative h-full flex flex-col overflow-hidden rounded-3xl bg-white hover:bg-bordo border border-rose-gold/20 hover:border-bordo shadow-soft hover:shadow-card transition-colors duration-300"
+      className="group relative h-full flex flex-col overflow-hidden rounded-3xl bg-white hover:bg-bordo border border-rose-gold/20 hover:border-bordo shadow-soft hover:shadow-card transition-[transform,background-color,border-color] duration-300 hover:scale-[1.02]"
     >
       {/* Görsel alanı */}
       <div className="relative aspect-[5/4] overflow-hidden">
-        <motion.div
-          className="absolute inset-0"
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <div className="absolute inset-0 transition-transform duration-700 ease-silk group-hover:scale-105">
           <FloralPlaceholder
             gradient="from-rose-goldLight via-rose-gold to-bordo-500"
             label="Floria Garden"
           />
-        </motion.div>
+        </div>
 
         {/* Hover: bordo örtü */}
         <div
@@ -70,15 +60,11 @@ export default function CategoryCtaCard() {
             <MessageCircle size={13} strokeWidth={1.8} />
             WhatsApp&apos;tan Yazın
           </span>
-          <motion.span
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rose-gold/30 text-rose-goldDark group-hover:bg-cream group-hover:text-bordo group-hover:border-cream transition-all duration-300"
-            whileHover={{ rotate: 45 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rose-gold/30 text-rose-goldDark group-hover:bg-cream group-hover:text-bordo group-hover:border-cream group-hover:rotate-45 transition-all duration-300">
             <MessageCircle size={14} strokeWidth={1.7} />
-          </motion.span>
+          </span>
         </div>
       </div>
-    </motion.a>
+    </a>
   );
 }

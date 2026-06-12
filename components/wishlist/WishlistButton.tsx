@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import { Heart } from "lucide-react";
 import { useWishlist } from "./WishlistProvider";
 import { useToast } from "@/components/toast/ToastProvider";
@@ -75,20 +74,12 @@ export default function WishlistButton({
 
 function AnimatedHeart({ filled, size = 17 }: { filled: boolean; size?: number }) {
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.span
-        key={filled ? "on" : "off"}
-        initial={{ scale: 0.4, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.4, opacity: 0 }}
-        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <Heart
-          size={size}
-          strokeWidth={1.8}
-          fill={filled ? "currentColor" : "transparent"}
-        />
-      </motion.span>
-    </AnimatePresence>
+    <span className="inline-flex transition-transform duration-200 active:scale-90">
+      <Heart
+        size={size}
+        strokeWidth={1.8}
+        fill={filled ? "currentColor" : "transparent"}
+      />
+    </span>
   );
 }

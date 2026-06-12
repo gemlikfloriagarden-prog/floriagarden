@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading";
-import ProductCard from "@/components/ui/ProductCard";
+import ProductShowcaseCard from "@/components/ui/ProductShowcaseCard";
 import FadeIn from "@/components/motion/FadeIn";
 import { getPublicProducts } from "@/lib/db/queries";
 import type { Product } from "@/lib/data/products";
@@ -53,7 +53,7 @@ export default async function ProductShowcase() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {products.map((product, i) => (
               <FadeIn key={product.id} delay={(i % 4) * 0.06} y={28}>
-                <ProductCard product={product} />
+                <ProductShowcaseCard product={product} index={i + 1} />
               </FadeIn>
             ))}
           </div>

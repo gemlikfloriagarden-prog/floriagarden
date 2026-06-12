@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     "Floria Garden teslimat saatleri, bölgeler ve özenli teslimat süreci hakkında detaylı bilgi.",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function DeliveryPage() {
   const { deliveryZones, deliveryProcess } = await getDelivery();

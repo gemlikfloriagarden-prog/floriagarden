@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import BotanicalArt from "./BotanicalArt";
@@ -12,7 +10,6 @@ import { cn } from "@/lib/utils/cn";
 
 type Props = {
   product: Product;
-  /** Lookbook sıra numarası (1 tabanlı). Verilmezse id'den türetilir. */
   index?: number;
 };
 
@@ -23,14 +20,20 @@ function lookbookNo(product: Product, index?: number): string {
   return String(n).padStart(2, "0");
 }
 
-export default function ProductCard({ product, index }: Props) {
+export default function ProductShowcaseCard({ product, index }: Props) {
   const askMessage = `Merhaba Floria Garden, "${product.name}" hakkında bilgi almak istiyorum.`;
   const isSoldOut = product.stock === "tukendi";
   const no = lookbookNo(product, index);
+  const cartProduct = {
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    gradient: product.gradient,
+    stock: product.stock,
+  };
 
   return (
     <article className="group relative h-full flex flex-col overflow-hidden rounded-2xl bg-white group-hover:bg-bordo hover:bg-bordo border border-rose-gold/20 hover:border-bordo shadow-soft hover:shadow-card transition-[transform,background-color,border-color] duration-300 hover:scale-[1.02]">
-      {/* Görsel — botanik lookbook */}
       <div className="relative aspect-[4/5] overflow-hidden">
         <Link
           href={`/urun/${product.slug}`}
@@ -51,26 +54,22 @@ export default function ProductCard({ product, index }: Props) {
               <BotanicalArt seed={product.id} label={product.name} />
             )}
           </div>
-          {/* Hover'da görseli kapatmayan hafif vurgu */}
           <div
             aria-hidden
             className="absolute inset-0 bg-gradient-to-br from-bordo-500/15 via-bordo-700/10 to-bordo-dark/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
           />
         </Link>
 
-        {/* Lookbook numarası */}
         <span className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 font-display text-xs sm:text-sm tracking-wide text-bordo/70 group-hover:text-cream/90 transition-colors duration-500 pointer-events-none">
           No. {no}
         </span>
 
-        {/* Favori */}
         <WishlistButton
           productId={product.id}
           productName={product.name}
           className="!left-auto !right-4"
         />
 
-        {/* Rozet / stok — ince, tek satır */}
         {(product.badge || product.stock === "az" || isSoldOut) && (
           <span
             className={cn(
@@ -91,7 +90,6 @@ export default function ProductCard({ product, index }: Props) {
         )}
       </div>
 
-      {/* İçerik — sade */}
       <div className="relative flex flex-1 flex-col p-4 sm:p-5">
         <Link href={`/urun/${product.slug}`}>
           <h3 className="font-display text-base sm:text-xl text-coffee group-hover:text-cream leading-snug transition-colors duration-500 line-clamp-1">
@@ -102,7 +100,6 @@ export default function ProductCard({ product, index }: Props) {
           {product.shortDescription}
         </p>
 
-        {/* Alt satır: fiyat + aksiyonlar */}
         <div className="mt-3 sm:mt-5 pt-3 sm:pt-4 border-t border-rose-gold/15 group-hover:border-cream/20 flex items-center justify-between gap-2 transition-colors duration-500">
           <span className="font-display text-lg sm:text-2xl text-bordo group-hover:text-rose-goldLight transition-colors duration-500">
             {formatPrice(product.price)}
@@ -118,7 +115,7 @@ export default function ProductCard({ product, index }: Props) {
             >
               <MessageCircle size={16} strokeWidth={1.7} />
             </a>
-            <AddToCartIconButton product={product} />
+            <AddToCartIconButton product={cartProduct} />
           </div>
         </div>
       </div>

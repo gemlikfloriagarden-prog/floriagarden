@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Tag, PackageCheck, RotateCcw, ChevronDown } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
 import EmptyState from "@/components/ui/EmptyState";
@@ -150,22 +149,16 @@ export default function ProductGrid({ products, showToolbar = true }: Props) {
           </button>
 
           {/* Sıfırla */}
-          <AnimatePresence>
-            {filtersActive && (
-              <motion.button
-                type="button"
-                onClick={resetFilters}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.2 }}
-                className="inline-flex items-center gap-1.5 text-xs text-coffee/50 hover:text-bordo transition-colors"
-              >
-                <RotateCcw size={13} strokeWidth={1.7} aria-hidden />
-                Temizle
-              </motion.button>
-            )}
-          </AnimatePresence>
+          {filtersActive && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="inline-flex items-center gap-1.5 text-xs text-coffee/50 hover:text-bordo transition-colors"
+            >
+              <RotateCcw size={13} strokeWidth={1.7} aria-hidden />
+              Temizle
+            </button>
+          )}
 
           {/* Sıralama — sağa yaslı */}
           <div className="relative flex items-center gap-2 ml-auto">
@@ -226,24 +219,18 @@ export default function ProductGrid({ products, showToolbar = true }: Props) {
           </button>
         </div>
       ) : (
-        <AnimatePresence mode="popLayout">
-          <motion.div
-            key={`${sort}-${price}-${inStockOnly}`}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className={cn(
-              "grid gap-3 sm:gap-5 md:gap-6",
-              "grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-            )}
-          >
-            {visible.map((product, i) => (
-              <FadeIn key={product.id} delay={(i % 8) * 0.04} y={16}>
-                <ProductCard product={product} index={i + 1} />
-              </FadeIn>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+        <div
+          className={cn(
+            "grid gap-3 sm:gap-5 md:gap-6",
+            "grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+          )}
+        >
+          {visible.map((product, i) => (
+            <FadeIn key={product.id} delay={(i % 8) * 0.04} y={16}>
+              <ProductCard product={product} index={i + 1} />
+            </FadeIn>
+          ))}
+        </div>
       )}
     </div>
   );

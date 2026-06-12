@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import FloralPlaceholder from "./FloralPlaceholder";
@@ -13,12 +10,7 @@ type Props = {
 
 export default function CategoryCard({ category }: Props) {
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      style={{ willChange: "transform" }}
-      className="group relative h-full flex flex-col overflow-hidden rounded-3xl bg-white hover:bg-bordo border border-rose-gold/20 hover:border-bordo shadow-soft hover:shadow-card transition-colors duration-300"
-    >
+    <div className="group relative h-full flex flex-col overflow-hidden rounded-3xl bg-white hover:bg-bordo border border-rose-gold/20 hover:border-bordo shadow-soft hover:shadow-card transition-[transform,background-color,border-color] duration-300 hover:scale-[1.02]">
       <Link
         href={`/koleksiyon/${category.slug}`}
         className="flex flex-col h-full"
@@ -26,16 +18,14 @@ export default function CategoryCard({ category }: Props) {
       >
         {/* Görsel alanı */}
         <div className="relative aspect-[5/4] overflow-hidden">
-          <motion.div
-            className="absolute inset-0"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <div className="absolute inset-0 transition-transform duration-700 ease-silk group-hover:scale-105">
             {category.image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={category.image}
                 alt={category.name}
+                loading="lazy"
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
@@ -44,7 +34,7 @@ export default function CategoryCard({ category }: Props) {
                 label={category.name}
               />
             )}
-          </motion.div>
+          </div>
 
           {/* Hover: bordo örtü — tüm kartlar üzerine gelince bordoya döner */}
           <div
@@ -77,16 +67,12 @@ export default function CategoryCard({ category }: Props) {
             <span className="text-xs uppercase tracking-wider2 text-rose-goldDark group-hover:text-cream transition-colors duration-300">
               Keşfet
             </span>
-            <motion.span
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rose-gold/30 text-rose-goldDark group-hover:bg-cream group-hover:text-bordo group-hover:border-cream transition-all duration-300"
-              whileHover={{ rotate: 45 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            >
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-rose-gold/30 text-rose-goldDark group-hover:bg-cream group-hover:text-bordo group-hover:border-cream group-hover:rotate-45 transition-all duration-300">
               <ArrowUpRight size={14} strokeWidth={1.7} />
-            </motion.span>
+            </span>
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }

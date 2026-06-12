@@ -261,9 +261,20 @@ function arr(v: unknown): string[] {
   }
 }
 
+function publicImageUrl(
+  kind: "product" | "category",
+  id: string,
+  image?: string,
+): string | undefined {
+  if (!image) return undefined;
+  if (!image.startsWith("data:")) return image;
+  return `/api/media/${kind}/${encodeURIComponent(id)}`;
+}
+
 function toFullProduct(r: Row): Product {
+  const id = s(r.id);
   return {
-    id: s(r.id),
+    id,
     slug: s(r.slug),
     name: s(r.name),
     shortDescription: s(r.short_description),
@@ -274,7 +285,7 @@ function toFullProduct(r: Row): Product {
     category: s(r.category),
     badge: opt(r.badge),
     gradient: s(r.gradient),
-    image: opt(r.image),
+    image: publicImageUrl("product", id, opt(r.image)),
     galleryGradients: undefined,
     pairings: arr(r.pairings),
     dimensions: opt(r.dimensions),
@@ -283,13 +294,14 @@ function toFullProduct(r: Row): Product {
 }
 
 function toFullCategory(r: Row): Category {
+  const slug = s(r.slug);
   return {
-    slug: s(r.slug),
+    slug,
     name: s(r.name),
     description: s(r.description),
     gradient: s(r.gradient),
     accent: "bordo",
-    image: opt(r.image),
+    image: publicImageUrl("category", slug, opt(r.image)),
   };
 }
 
