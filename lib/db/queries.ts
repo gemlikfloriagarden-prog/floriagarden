@@ -127,6 +127,29 @@ function phoneDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+let ordersEmailColumnReady: boolean | null = null;
+
+async function ensureOrdersEmailColumn(): Promise<boolean> {
+  if (ordersEmailColumnReady !== null) return ordersEmailColumnReady;
+
+  try {
+    const rows = await query<Row>("SHOW COLUMNS FROM orders LIKE 'customer_email'");
+    if (rows.length > 0) {
+      ordersEmailColumnReady = true;
+      return true;
+    }
+
+    await execute(
+      "ALTER TABLE orders ADD COLUMN customer_email VARCHAR(200) NULL AFTER customer_phone",
+    );
+    ordersEmailColumnReady = true;
+    return true;
+  } catch {
+    ordersEmailColumnReady = false;
+    return false;
+  }
+}
+
 /* ════════════════════════════════════════════════
    OKUMA — tüm admin verisi
    ════════════════════════════════════════════════ */
@@ -647,9 +670,10 @@ export async function getMemberOrders(member: Member): Promise<Order[]> {
   const last10 = phoneDigits(member.phone).slice(-10);
   if (!email && !last10) return [];
 
+  const hasEmailColumn = email ? await ensureOrdersEmailColumn() : false;
   const params: (string | number | boolean | null | Date)[] = [];
   const filters: string[] = [];
-  if (email) {
+  if (email && hasEmailColumn) {
     filters.push("LOWER(TRIM(customer_email)) = LOWER(TRIM(?))");
     params.push(email);
   }
@@ -893,29 +917,55 @@ export async function deleteDeliveryStep(id: string) {
    ════════════════════════════════════════════════ */
 
 export async function createOrder(o: Order) {
-  await execute(
-    `INSERT INTO orders
-     (id,order_no,customer_name,customer_phone,customer_email,recipient_name,recipient_phone,address,surprise,delivery_zone,delivery_date,delivery_slot,payment,status,card_note,admin_note)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-    [
-      o.id,
-      o.orderNo,
-      o.customerName,
-      o.customerPhone,
-      o.customerEmail ?? null,
-      o.recipientName,
-      o.recipientPhone,
-      o.address,
-      o.surprise ? 1 : 0,
-      o.deliveryZone,
-      o.deliveryDate || null,
-      o.deliverySlot,
-      o.payment,
-      o.status,
-      o.cardNote,
-      o.adminNote,
-    ],
-  );
+  const hasEmailColumn = await ensureOrdersEmailColumn();
+  if (hasEmailColumn) {
+    await execute(
+      `INSERT INTO orders
+       (id,order_no,customer_name,customer_phone,customer_email,recipient_name,recipient_phone,address,surprise,delivery_zone,delivery_date,delivery_slot,payment,status,card_note,admin_note)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [
+        o.id,
+        o.orderNo,
+        o.customerName,
+        o.customerPhone,
+        o.customerEmail ?? null,
+        o.recipientName,
+        o.recipientPhone,
+        o.address,
+        o.surprise ? 1 : 0,
+        o.deliveryZone,
+        o.deliveryDate || null,
+        o.deliverySlot,
+        o.payment,
+        o.status,
+        o.cardNote,
+        o.adminNote,
+      ],
+    );
+  } else {
+    await execute(
+      `INSERT INTO orders
+       (id,order_no,customer_name,customer_phone,recipient_name,recipient_phone,address,surprise,delivery_zone,delivery_date,delivery_slot,payment,status,card_note,admin_note)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [
+        o.id,
+        o.orderNo,
+        o.customerName,
+        o.customerPhone,
+        o.recipientName,
+        o.recipientPhone,
+        o.address,
+        o.surprise ? 1 : 0,
+        o.deliveryZone,
+        o.deliveryDate || null,
+        o.deliverySlot,
+        o.payment,
+        o.status,
+        o.cardNote,
+        o.adminNote,
+      ],
+    );
+  }
   for (const it of o.items) {
     await execute(
       "INSERT INTO order_items (order_id,product_id,name,price,quantity) VALUES (?,?,?,?,?)",
@@ -925,31 +975,59 @@ export async function createOrder(o: Order) {
 }
 
 export async function updateOrder(id: string, o: Order) {
-  await execute(
-    `UPDATE orders SET
-      order_no=?, customer_name=?, customer_phone=?, customer_email=?, recipient_name=?, recipient_phone=?,
-      address=?, surprise=?, delivery_zone=?, delivery_date=?, delivery_slot=?,
-      payment=?, status=?, card_note=?, admin_note=?
-     WHERE id=?`,
-    [
-      o.orderNo,
-      o.customerName,
-      o.customerPhone,
-      o.customerEmail ?? null,
-      o.recipientName,
-      o.recipientPhone,
-      o.address,
-      o.surprise ? 1 : 0,
-      o.deliveryZone,
-      o.deliveryDate || null,
-      o.deliverySlot,
-      o.payment,
-      o.status,
-      o.cardNote,
-      o.adminNote,
-      id,
-    ],
-  );
+  const hasEmailColumn = await ensureOrdersEmailColumn();
+  if (hasEmailColumn) {
+    await execute(
+      `UPDATE orders SET
+        order_no=?, customer_name=?, customer_phone=?, customer_email=?, recipient_name=?, recipient_phone=?,
+        address=?, surprise=?, delivery_zone=?, delivery_date=?, delivery_slot=?,
+        payment=?, status=?, card_note=?, admin_note=?
+       WHERE id=?`,
+      [
+        o.orderNo,
+        o.customerName,
+        o.customerPhone,
+        o.customerEmail ?? null,
+        o.recipientName,
+        o.recipientPhone,
+        o.address,
+        o.surprise ? 1 : 0,
+        o.deliveryZone,
+        o.deliveryDate || null,
+        o.deliverySlot,
+        o.payment,
+        o.status,
+        o.cardNote,
+        o.adminNote,
+        id,
+      ],
+    );
+  } else {
+    await execute(
+      `UPDATE orders SET
+        order_no=?, customer_name=?, customer_phone=?, recipient_name=?, recipient_phone=?,
+        address=?, surprise=?, delivery_zone=?, delivery_date=?, delivery_slot=?,
+        payment=?, status=?, card_note=?, admin_note=?
+       WHERE id=?`,
+      [
+        o.orderNo,
+        o.customerName,
+        o.customerPhone,
+        o.recipientName,
+        o.recipientPhone,
+        o.address,
+        o.surprise ? 1 : 0,
+        o.deliveryZone,
+        o.deliveryDate || null,
+        o.deliverySlot,
+        o.payment,
+        o.status,
+        o.cardNote,
+        o.adminNote,
+        id,
+      ],
+    );
+  }
   // Kalemleri sil-yeniden ekle (basit ve güvenli)
   await execute("DELETE FROM order_items WHERE order_id=?", [id]);
   for (const it of o.items) {
