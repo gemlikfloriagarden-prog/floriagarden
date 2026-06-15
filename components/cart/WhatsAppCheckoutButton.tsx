@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageCircle } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useCart } from "./CartProvider";
 import { useToast } from "@/components/toast/ToastProvider";
@@ -21,7 +21,7 @@ type CheckoutResponse = {
 };
 
 export default function WhatsAppCheckoutButton({
-  label = "WhatsApp ile Siparişi Tamamla",
+  label = "Siparişi Tamamla",
   className,
   onDone,
 }: Props) {
@@ -33,8 +33,6 @@ export default function WhatsAppCheckoutButton({
   const submit = async () => {
     if (pending || state.items.length === 0) return;
     setPending(true);
-
-    const waWindow = window.open("about:blank", "_blank");
 
     try {
       const res = await fetch("/api/orders/whatsapp", {
@@ -56,22 +54,18 @@ export default function WhatsAppCheckoutButton({
         }),
       });
       const json = (await res.json()) as CheckoutResponse;
-      if (!res.ok || !json.ok || !json.orderNo || !json.whatsappUrl) {
+      if (!res.ok || !json.ok || !json.orderNo) {
         throw new Error(json.error || "Sipariş kaydı oluşturulamadı.");
       }
 
-      if (waWindow) {
-        waWindow.opener = null;
-        waWindow.location.href = json.whatsappUrl;
-      }
-
+      // WhatsApp'ı BURADA açmıyoruz. Müşteri "Siparişiniz alındı" sayfasına
+      // yönlenir; oradaki "WhatsApp'a Devam Et" butonuyla WhatsApp'a geçer.
       clear();
       onDone?.();
       router.push(
         `/siparisiniz-alindi?order=${encodeURIComponent(json.orderNo)}`,
       );
     } catch (error) {
-      if (waWindow) waWindow.close();
       toast({
         title: "Sipariş oluşturulamadı",
         description:
@@ -94,7 +88,7 @@ export default function WhatsAppCheckoutButton({
       onClick={submit}
       disabled={pending}
     >
-      <MessageCircle size={18} strokeWidth={1.7} />
+      <ShoppingBag size={18} strokeWidth={1.7} />
       <span>{pending ? "Sipariş oluşturuluyor..." : label}</span>
     </Button>
   );

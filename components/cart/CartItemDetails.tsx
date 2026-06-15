@@ -11,7 +11,7 @@ const SLOT_LABELS: Record<string, string> = {
 function regionLabel(item: CartItem): string | null {
   if (!item.deliveryRegion) return null;
   if (item.deliveryRegion === "gemlik") return "Gemlik içi";
-  return `Şehir dışı${item.deliveryCity ? ` · ${item.deliveryCity}` : " (kargo)"}`;
+  return "Şehir dışı (kargo)";
 }
 
 function wrapLabel(item: CartItem): string | null {
@@ -39,13 +39,23 @@ export default function CartItemDetails({ item }: { item: CartItem }) {
   const wrap = wrapLabel(item);
   const isOutOfCity = item.deliveryRegion === "sehir-disi";
 
-  const hasAny = region || item.deliveryDate || wrap || item.cardNote;
+  const addressOneLine = item.deliveryAddress
+    ? item.deliveryAddress.replace(/\s*\n\s*/g, " · ")
+    : "";
+
+  const hasAny =
+    region || addressOneLine || item.deliveryDate || wrap || item.cardNote;
   if (!hasAny) return null;
 
   return (
     <div className="flex flex-wrap gap-1.5">
       {region && (
         <Chip icon={<MapPin size={11} strokeWidth={1.8} />}>{region}</Chip>
+      )}
+      {addressOneLine && (
+        <Chip icon={<MapPin size={11} strokeWidth={1.8} />}>
+          {addressOneLine}
+        </Chip>
       )}
       {item.deliveryDate && (
         <Chip icon={<Calendar size={11} strokeWidth={1.8} />}>

@@ -1,7 +1,9 @@
 "use client";
 
-import { Calendar, Clock, MapPin, Truck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Calendar, Clock, MapPin, Truck, BookUser } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { useMember } from "@/lib/auth/useMember";
 
 const SLOTS = [
   { id: "09-12", label: "09:00 — 12:00" },
@@ -21,15 +23,25 @@ const REGIONS: {
   { id: "sehir-disi", label: "Şehir dışı", note: "Anlaşmalı kargoyla 1–3 iş günü, takip numaralı gönderim." },
 ];
 
+type SavedAddress = {
+  id: string;
+  label: string;
+  recipientName: string;
+  phone: string;
+  cityDistrict: string;
+  address: string;
+  note?: string;
+};
+
 type Props = {
   region: DeliveryRegion;
   date: string;
   slot: string;
-  city: string;
+  address: string;
   onRegionChange: (v: DeliveryRegion) => void;
   onDateChange: (v: string) => void;
   onSlotChange: (v: string) => void;
-  onCityChange: (v: string) => void;
+  onAddressChange: (v: string) => void;
 };
 
 function getMinDateIso() {
@@ -41,18 +53,51 @@ function getMaxDateIso() {
   return d.toISOString().split("T")[0];
 }
 
+/** Kayıtlı adresi tek bir metin bloğuna çevirir (adres kutusuna yazılır). */
+function composeAddress(a: SavedAddress): string {
+  const lines = [
+    [a.recipientName, a.phone].filter(Boolean).join(" · "),
+    [a.cityDistrict, a.address].filter(Boolean).join(" "),
+    a.note ?? "",
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
 export default function DeliverySchedule({
   region,
   date,
   slot,
-  city,
+  address,
   onRegionChange,
   onDateChange,
   onSlotChange,
-  onCityChange,
+  onAddressChange,
 }: Props) {
   const isOutOfCity = region === "sehir-disi";
   const activeRegion = REGIONS.find((r) => r.id === region) ?? REGIONS[0];
+
+  const isMember = useMember();
+  const [saved, setSaved] = useState<SavedAddress[]>([]);
+
+  // Üye girişliyse kayıtlı adresleri getir (hızlı doldurma için).
+  useEffect(() => {
+    if (!isMember) {
+      setSaved([]);
+      return;
+    }
+    let active = true;
+    fetch("/api/member/addresses", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { addresses: [] }))
+      .then((j) => {
+        if (active && Array.isArray(j?.addresses)) setSaved(j.addresses);
+      })
+      .catch(() => {
+        if (active) setSaved([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [isMember]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -86,26 +131,51 @@ export default function DeliverySchedule({
         </p>
       </div>
 
-      {/* Şehir dışı: il/ilçe alanı */}
-      {isOutOfCity && (
+      {/* Kayıtlı adresler — sadece üye girişliyse ve adresi varsa */}
+      {isMember && saved.length > 0 && (
         <div className="flex flex-col gap-2">
-          <label
-            htmlFor="delivery-city"
-            className="flex items-center gap-2 text-[0.7rem] uppercase tracking-wider2 text-rose-gold"
-          >
-            <MapPin size={13} strokeWidth={1.7} />
-            İl / İlçe
-          </label>
-          <input
-            id="delivery-city"
-            type="text"
-            value={city}
-            onChange={(e) => onCityChange(e.target.value)}
-            placeholder="Örn: İstanbul / Kadıköy"
-            className="w-full rounded-2xl bg-cream/5 border border-rose-gold/20 px-4 h-12 text-sm text-coffee placeholder:text-coffee/35 focus:outline-none focus:border-rose-gold focus:bg-cream/10 transition-colors"
-          />
+          <span className="flex items-center gap-2 text-[0.7rem] uppercase tracking-wider2 text-rose-gold">
+            <BookUser size={13} strokeWidth={1.7} />
+            Kayıtlı Adreslerim
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {saved.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => onAddressChange(composeAddress(a))}
+                className="inline-flex items-center gap-1.5 rounded-full border border-rose-gold/30 bg-cream/5 px-3 h-9 text-xs text-coffee/80 hover:border-rose-gold hover:text-coffee transition-colors"
+              >
+                <MapPin size={12} strokeWidth={1.7} className="text-rose-gold" />
+                {a.label || "Adres"}
+              </button>
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Teslimat adresi — her bölgede zorunlu */}
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="delivery-address"
+          className="flex items-center gap-2 text-[0.7rem] uppercase tracking-wider2 text-rose-gold"
+        >
+          <MapPin size={13} strokeWidth={1.7} />
+          Teslimat Adresi
+        </label>
+        <textarea
+          id="delivery-address"
+          value={address}
+          onChange={(e) => onAddressChange(e.target.value)}
+          rows={3}
+          placeholder={
+            isOutOfCity
+              ? "Alıcı adı, telefonu ve açık adres (il / ilçe dahil)"
+              : "Alıcı adı, telefonu ve açık adres (mahalle, sokak, no, kapı)"
+          }
+          className="w-full rounded-2xl bg-cream/5 border border-rose-gold/20 px-4 py-3 text-sm text-coffee placeholder:text-coffee/35 focus:outline-none focus:border-rose-gold focus:bg-cream/10 transition-colors resize-none"
+        />
+      </div>
 
       {/* Teslimat / gönderim günü */}
       <div className="flex flex-col gap-2">

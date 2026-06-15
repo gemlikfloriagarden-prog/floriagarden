@@ -158,7 +158,7 @@ export default function CartPageClient() {
           <CouponInput variant="dark" />
 
           <WhatsAppCheckoutButton
-            label="WhatsApp ile Tamamla"
+            label="Siparişi Tamamla"
             className="w-full"
           />
 

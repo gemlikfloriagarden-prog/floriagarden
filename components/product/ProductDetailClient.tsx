@@ -11,11 +11,11 @@ import CardNoteInput from "./CardNoteInput";
 import DeliverySchedule from "./DeliverySchedule";
 import GiftWrapSelector, { GIFT_WRAP_PRICES } from "./GiftWrapSelector";
 import { useCart } from "@/components/cart/CartProvider";
+import { useToast } from "@/components/toast/ToastProvider";
 import { formatPrice } from "@/lib/utils/format";
 import { whatsappLink } from "@/lib/constants";
 import { getAverageRating } from "@/lib/data/reviews";
 import type { Product } from "@/lib/data/products";
-import type { DeliveryRegion } from "./DeliverySchedule";
 
 type Props = {
   product: Product;
@@ -23,10 +23,11 @@ type Props = {
 
 export default function ProductDetailClient({ product }: Props) {
   const { addItem, openDrawer } = useCart();
+  const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [cardNote, setCardNote] = useState("");
-  const [region, setRegion] = useState<DeliveryRegion>("gemlik");
-  const [city, setCity] = useState("");
+  const [region, setRegion] = useState<"gemlik" | "sehir-disi">("gemlik");
+  const [address, setAddress] = useState("");
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState("12-15");
   const [giftWrap, setGiftWrap] = useState<"standart" | "premium" | "luks">(
@@ -63,6 +64,29 @@ export default function ProductDetailClient({ product }: Props) {
 
   const handleAdd = () => {
     if (isSoldOut) return;
+
+    // Tüm teslimat bilgileri girilmeden sepete eklenmez.
+    if (!address.trim()) {
+      toast({
+        title: "Teslimat adresi gerekli",
+        description: "Lütfen alıcı ve açık adres bilgisini yazın.",
+        tone: "warning",
+      });
+      return;
+    }
+    if (!date) {
+      toast({
+        title: "Teslimat günü gerekli",
+        description: "Lütfen bir teslim/gönderim günü seçin.",
+        tone: "warning",
+      });
+      return;
+    }
+    if (region === "gemlik" && !slot) {
+      toast({ title: "Saat aralığı seçin", tone: "warning" });
+      return;
+    }
+
     addItem(
       {
         productId: product.id,
@@ -71,7 +95,7 @@ export default function ProductDetailClient({ product }: Props) {
         gradient: product.gradient,
         cardNote: cardNote.trim() || undefined,
         deliveryRegion: region,
-        deliveryCity: region === "sehir-disi" ? city.trim() || undefined : undefined,
+        deliveryAddress: address.trim(),
         deliveryDate: date || undefined,
         deliverySlot: region === "sehir-disi" ? undefined : slot,
         giftWrap,
@@ -156,11 +180,11 @@ export default function ProductDetailClient({ product }: Props) {
           <CardNoteInput value={cardNote} onChange={setCardNote} />
           <DeliverySchedule
             region={region}
-            city={city}
+            address={address}
             date={date}
             slot={slot}
             onRegionChange={setRegion}
-            onCityChange={setCity}
+            onAddressChange={setAddress}
             onDateChange={setDate}
             onSlotChange={setSlot}
           />

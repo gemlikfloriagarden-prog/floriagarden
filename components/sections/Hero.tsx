@@ -36,7 +36,7 @@ export default function Hero() {
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center gap-2 rounded-full bg-white border border-rose-gold/30 shadow-soft px-4 py-1.5">
                 <Sparkles size={14} strokeWidth={1.6} className="text-rose-gold" />
-                <span className="eyebrow">Yeni Nesil Çiçekçi</span>
+                <span className="eyebrow">Gemlik&apos;in Butik Çiçekçisi</span>
               </span>
             </div>
 

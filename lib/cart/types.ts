@@ -12,8 +12,12 @@ export type CartItem = {
   deliveryDate?: string;
   /** Teslimat saat aralığı */
   deliverySlot?: string;
-  /** Şehir dışı için il/ilçe + adres notu */
-  deliveryCity?: string;
+  /** Açık teslimat adresi (her bölgede zorunlu) */
+  deliveryAddress?: string;
+  /** Alıcı adı (opsiyonel) */
+  recipientName?: string;
+  /** Alıcı telefonu (opsiyonel) */
+  recipientPhone?: string;
   /** Paket seviyesi */
   giftWrap?: "standart" | "premium" | "luks";
 };

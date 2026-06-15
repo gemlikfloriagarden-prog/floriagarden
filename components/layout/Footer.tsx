@@ -3,6 +3,7 @@ import { Instagram, MapPin, Phone, Mail, Clock } from "lucide-react";
 import BrandMark from "./BrandMark";
 import NewsletterSection from "@/components/forms/NewsletterSection";
 import { SITE, whatsappLink } from "@/lib/constants";
+import { LANDING_PAGES } from "@/lib/seo/landingPages";
 
 const FOOTER_LINKS = [
   {
@@ -132,8 +133,27 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Popüler aramalar — yerel SEO iç linkleri (sade) */}
+        <nav
+          aria-label="Popüler aramalar"
+          className="mt-12 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-cream/45"
+        >
+          <span className="text-rose-gold/70">Popüler:</span>
+          {LANDING_PAGES.slice(0, 5).map((p, i) => (
+            <span key={p.slug} className="inline-flex items-center gap-3">
+              {i > 0 && <span aria-hidden className="text-cream/20">·</span>}
+              <Link
+                href={`/${p.slug}`}
+                className="hover:text-rose-goldLight transition-colors"
+              >
+                {p.eyebrow}
+              </Link>
+            </span>
+          ))}
+        </nav>
+
         {/* Alt bar */}
-        <div className="mt-14 pt-8 border-t border-cream/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-cream/55">
+        <div className="mt-8 pt-8 border-t border-cream/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-cream/55">
           <span>
             © {new Date().getFullYear()} Floria Garden. Tüm hakları saklıdır.
           </span>

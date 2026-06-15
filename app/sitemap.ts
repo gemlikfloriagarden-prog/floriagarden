@@ -3,6 +3,7 @@ import { PRODUCTS } from "@/lib/data/products";
 import { CATEGORIES } from "@/lib/data/categories";
 import { SITE_URL } from "@/lib/constants";
 import { getPublicCategories, getPublicProducts } from "@/lib/db/queries";
+import { LANDING_PAGES } from "@/lib/seo/landingPages";
 
 const BASE_URL = SITE_URL;
 
@@ -43,6 +44,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: path === "" ? 1 : 0.7,
+    })),
+    ...LANDING_PAGES.map((p) => ({
+      url: `${BASE_URL}/${p.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     })),
     ...categories.map((c) => ({
       url: `${BASE_URL}/koleksiyon/${c.slug}`,

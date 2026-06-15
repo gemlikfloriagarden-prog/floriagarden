@@ -21,6 +21,7 @@ type CheckoutItem = {
   deliveryRegion?: unknown;
   deliveryDate?: unknown;
   deliverySlot?: unknown;
+  deliveryAddress?: unknown;
   deliveryCity?: unknown;
   giftWrap?: unknown;
 };
@@ -55,14 +56,20 @@ function giftWrapLabel(wrap: string): string {
 
 function normalizeItems(raw: unknown): {
   orderItems: OrderItem[];
-  notes: string[];
+  /** Yalnızca müşterinin yazdığı kart mesajları (KART NOTU alanına gider). */
+  cardNotes: string[];
+  /** Pakete dair ek bilgiler (ADMIN NOTU içinde kısa liste). */
+  packageNotes: string[];
   first: CheckoutItem | null;
 } {
-  if (!Array.isArray(raw)) return { orderItems: [], notes: [], first: null };
+  if (!Array.isArray(raw))
+    return { orderItems: [], cardNotes: [], packageNotes: [], first: null };
 
   const orderItems: OrderItem[] = [];
-  const notes: string[] = [];
+  const cardNotes: string[] = [];
+  const packageNotes: string[] = [];
   let first: CheckoutItem | null = null;
+  const multiItem = (raw as unknown[]).length > 1;
 
   for (const item of raw.slice(0, 30) as CheckoutItem[]) {
     const name = text(item.name);
@@ -78,25 +85,18 @@ function normalizeItems(raw: unknown): {
       quantity: qty,
     });
 
-    const detailLines: string[] = [];
-    const region = text(item.deliveryRegion);
-    if (region) detailLines.push(`Bölge: ${deliveryRegionLabel(region)}`);
-    const city = text(item.deliveryCity);
-    if (city) detailLines.push(`Şehir/adres notu: ${city}`);
-    const date = text(item.deliveryDate);
-    if (date) detailLines.push(`Teslim/gönderim günü: ${date}`);
-    const slot = text(item.deliverySlot);
-    if (slot) detailLines.push(`Saat aralığı: ${slot}`);
-    const wrap = text(item.giftWrap);
-    if (wrap && wrap !== "standart") detailLines.push(`Paket: ${giftWrapLabel(wrap)}`);
+    // Kart notu: sadece müşterinin yazdığı mesaj (birden çok ürün varsa ürün adıyla)
     const cardNote = text(item.cardNote);
-    if (cardNote) detailLines.push(`Kart notu: ${cardNote}`);
-    if (detailLines.length > 0) {
-      notes.push(`${name}: ${detailLines.join(" · ")}`);
+    if (cardNote) cardNotes.push(multiItem ? `${name}: ${cardNote}` : cardNote);
+
+    // Paket bilgisi: standart dışıysa admin notuna kısa ekle
+    const wrap = text(item.giftWrap);
+    if (wrap && wrap !== "standart") {
+      packageNotes.push(`${name}: ${giftWrapLabel(wrap)}`);
     }
   }
 
-  return { orderItems, notes, first };
+  return { orderItems, cardNotes, packageNotes, first };
 }
 
 function buildOrderMessage(order: Order, discount: number, couponCode: string) {
@@ -164,7 +164,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
-  const { orderItems, notes, first } = normalizeItems(body?.items);
+  const { orderItems, cardNotes, packageNotes, first } = normalizeItems(
+    body?.items,
+  );
   if (orderItems.length === 0) {
     return NextResponse.json(
       { error: "Sepette siparişe çevrilecek ürün yok." },
@@ -195,27 +197,29 @@ export async function POST(req: Request) {
   const member = memberId ? await getMemberById(memberId) : null;
   const firstRegion = text(first?.deliveryRegion);
   const deliveryZone = deliveryRegionLabel(firstRegion);
-  const deliveryCity = text(first?.deliveryCity);
+  const deliveryAddress =
+    text(first?.deliveryAddress) || text(first?.deliveryCity);
   const customerName = member?.name || "WhatsApp müşterisi";
   const customerPhone = member?.phone || "";
   const customerEmail = member?.email || undefined;
   const customerKnown = Boolean(member);
 
+  // Admin notu: KISA ve tekrarsız. Adres/tarih/saat zaten kendi alanlarında
+  // gösterildiği için burada tekrar edilmez; sadece kaynak + tutar + paket.
   const adminNoteLines = [
-    "Web sitesi WhatsApp checkout ile oluşturuldu.",
     customerKnown
-      ? "Üye hesabıyla eşleşti; Hesabım > Siparişlerim alanında görünür."
-      : "Üye girişi olmadan oluşturuldu; müşteri bilgileri WhatsApp üzerinden netleşecek.",
+      ? "Web sitesi siparişi — üye hesabıyla eşleşti."
+      : "Web sitesi siparişi — üye girişi olmadan oluşturuldu.",
     `Sepet toplamı: ${formatPrice(subtotal)}`,
   ];
   if (discount > 0) {
     adminNoteLines.push(
-      `Kupon indirimi: ${couponCode || "Kupon"} / ${formatPrice(discount)}`,
+      `Kupon: ${couponCode || "Kupon"} (−${formatPrice(discount)})`,
     );
+    adminNoteLines.push(`Ödenecek toplam: ${formatPrice(subtotal - discount)}`);
   }
-  adminNoteLines.push(`Ödenecek toplam: ${formatPrice(subtotal - discount)}`);
-  if (notes.length > 0) {
-    adminNoteLines.push("", "Sepet notları:", ...notes);
+  if (packageNotes.length > 0) {
+    adminNoteLines.push(`Paket: ${packageNotes.join(" · ")}`);
   }
 
   const order: Order = {
@@ -227,7 +231,7 @@ export async function POST(req: Request) {
     customerEmail,
     recipientName: customerKnown ? customerName : "WhatsApp üzerinden netleşecek",
     recipientPhone: customerKnown ? customerPhone : "",
-    address: deliveryCity || "WhatsApp üzerinden netleşecek",
+    address: deliveryAddress || "WhatsApp üzerinden netleşecek",
     surprise: false,
     items,
     deliveryZone,
@@ -235,9 +239,8 @@ export async function POST(req: Request) {
     deliverySlot: text(first?.deliverySlot) || "WhatsApp üzerinden netleşecek",
     payment: "havale",
     status: "yeni",
-    cardNote: notes
-      .filter((line) => line.toLowerCase().includes("kart notu"))
-      .join("\n"),
+    // KART NOTU: yalnızca müşterinin yazdığı kart mesajı.
+    cardNote: cardNotes.join("\n"),
     adminNote: adminNoteLines.join("\n"),
   };
 

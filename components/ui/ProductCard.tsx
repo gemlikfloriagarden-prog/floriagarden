@@ -118,7 +118,7 @@ export default function ProductCard({ product, index }: Props) {
             >
               <MessageCircle size={16} strokeWidth={1.7} />
             </a>
-            <AddToCartIconButton product={product} />
+            <AddToCartIconButton slug={product.slug} soldOut={isSoldOut} />
           </div>
         </div>
       </div>

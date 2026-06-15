@@ -24,13 +24,6 @@ export default function ProductShowcaseCard({ product, index }: Props) {
   const askMessage = `Merhaba Floria Garden, "${product.name}" hakkında bilgi almak istiyorum.`;
   const isSoldOut = product.stock === "tukendi";
   const no = lookbookNo(product, index);
-  const cartProduct = {
-    id: product.id,
-    name: product.name,
-    price: product.price,
-    gradient: product.gradient,
-    stock: product.stock,
-  };
 
   return (
     <article className="group relative h-full flex flex-col overflow-hidden rounded-2xl bg-white group-hover:bg-bordo hover:bg-bordo border border-rose-gold/20 hover:border-bordo shadow-soft hover:shadow-card transition-[transform,background-color,border-color] duration-300 hover:scale-[1.02]">
@@ -115,7 +108,7 @@ export default function ProductShowcaseCard({ product, index }: Props) {
             >
               <MessageCircle size={16} strokeWidth={1.7} />
             </a>
-            <AddToCartIconButton product={cartProduct} />
+            <AddToCartIconButton slug={product.slug} soldOut={isSoldOut} />
           </div>
         </div>
       </div>
