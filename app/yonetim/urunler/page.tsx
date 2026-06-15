@@ -31,6 +31,17 @@ const STOCK_STYLES: Record<StockState, string> = {
   tukendi: "bg-bordo/10 text-bordo border-bordo/25",
 };
 
+const MAX_PRODUCT_IMAGES = 4;
+
+function productImages(product: Pick<AdminProduct, "image" | "images">): string[] {
+  const images = product.images?.length
+    ? product.images
+    : product.image
+      ? [product.image]
+      : [];
+  return images.filter(Boolean).slice(0, MAX_PRODUCT_IMAGES);
+}
+
 export default function UrunlerPage() {
   const { data, addProduct, updateProduct, removeProduct } = useAdminData();
   const { toast } = useToast();
@@ -49,7 +60,7 @@ export default function UrunlerPage() {
   const [longDescription, setLongDescription] = useState("");
   const [contents, setContents] = useState(""); // satır satır → dizi
   const [gradient, setGradient] = useState(DEFAULT_GRADIENT);
-  const [image, setImage] = useState<string | undefined>(undefined);
+  const [images, setImages] = useState<string[]>([]);
 
   const categoryName = (slug: string) =>
     data.categories.find((c) => c.slug === slug)?.name ?? "—";
@@ -65,7 +76,7 @@ export default function UrunlerPage() {
     setLongDescription("");
     setContents("");
     setGradient(DEFAULT_GRADIENT);
-    setImage(undefined);
+    setImages([]);
     setFormOpen(true);
   };
 
@@ -80,7 +91,7 @@ export default function UrunlerPage() {
     setLongDescription(p.longDescription ?? "");
     setContents((p.contents ?? []).join("\n"));
     setGradient(p.gradient);
-    setImage(p.image);
+    setImages(productImages(p));
     setFormOpen(true);
   };
 
@@ -102,7 +113,8 @@ export default function UrunlerPage() {
         .map((l) => l.trim())
         .filter(Boolean),
       gradient,
-      image,
+      image: images[0],
+      images: images.slice(0, MAX_PRODUCT_IMAGES),
     };
 
     if (editTarget) {
@@ -151,69 +163,72 @@ export default function UrunlerPage() {
         </AdminCard>
       ) : (
         <AdminCard className="divide-y divide-rose-gold/12 overflow-hidden">
-          {data.products.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center gap-4 p-4 sm:p-5 hover:bg-cream-soft/50 transition-colors"
-            >
-              {p.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.image}
-                  alt={p.name}
-                  className="h-14 w-14 flex-shrink-0 rounded-2xl object-cover"
-                />
-              ) : (
-                <div
-                  className={`h-14 w-14 flex-shrink-0 rounded-2xl bg-gradient-to-br ${p.gradient}`}
-                  aria-hidden
-                />
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-display text-lg text-coffee leading-tight truncate">
-                    {p.name}
-                  </h3>
-                  {p.badge && (
-                    <span className="inline-flex items-center rounded-full bg-bordo/10 text-bordo px-2 py-0.5 text-[0.6rem] uppercase tracking-wider2">
-                      {p.badge}
+          {data.products.map((p) => {
+            const image = productImages(p)[0];
+            return (
+              <div
+                key={p.id}
+                className="flex items-center gap-4 p-4 sm:p-5 hover:bg-cream-soft/50 transition-colors"
+              >
+                {image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={image}
+                    alt={p.name}
+                    className="h-14 w-14 flex-shrink-0 rounded-2xl object-cover object-center"
+                  />
+                ) : (
+                  <div
+                    className={`h-14 w-14 flex-shrink-0 rounded-2xl bg-gradient-to-br ${p.gradient}`}
+                    aria-hidden
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-display text-lg text-coffee leading-tight truncate">
+                      {p.name}
+                    </h3>
+                    {p.badge && (
+                      <span className="inline-flex items-center rounded-full bg-bordo/10 text-bordo px-2 py-0.5 text-[0.6rem] uppercase tracking-wider2">
+                        {p.badge}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-coffee/55 truncate">
+                    {categoryName(p.category)}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="font-display text-base text-bordo">
+                      {formatPrice(p.price)}
                     </span>
-                  )}
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.6rem] uppercase tracking-wider2 ${STOCK_STYLES[p.stock]}`}
+                    >
+                      {STOCK_LABELS[p.stock]}
+                    </span>
+                  </div>
                 </div>
-                <p className="text-sm text-coffee/55 truncate">
-                  {categoryName(p.category)}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="font-display text-base text-bordo">
-                    {formatPrice(p.price)}
-                  </span>
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.6rem] uppercase tracking-wider2 ${STOCK_STYLES[p.stock]}`}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(p)}
+                    aria-label={`${p.name} düzenle`}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-gold/25 text-coffee/70 hover:text-bordo hover:border-bordo transition-colors"
                   >
-                    {STOCK_LABELS[p.stock]}
-                  </span>
+                    <Pencil size={15} strokeWidth={1.7} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(p)}
+                    aria-label={`${p.name} sil`}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-gold/25 text-coffee/70 hover:text-bordo hover:border-bordo transition-colors"
+                  >
+                    <Trash2 size={15} strokeWidth={1.7} />
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => openEdit(p)}
-                  aria-label={`${p.name} düzenle`}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-gold/25 text-coffee/70 hover:text-bordo hover:border-bordo transition-colors"
-                >
-                  <Pencil size={15} strokeWidth={1.7} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(p)}
-                  aria-label={`${p.name} sil`}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-gold/25 text-coffee/70 hover:text-bordo hover:border-bordo transition-colors"
-                >
-                  <Trash2 size={15} strokeWidth={1.7} />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </AdminCard>
       )}
 
@@ -352,11 +367,16 @@ export default function UrunlerPage() {
           </div>
 
           <ImageUpload
-            value={image}
-            onChange={setImage}
+            value={images[0]}
+            onChange={(image) => setImages(image ? [image] : [])}
+            values={images}
+            onImagesChange={(nextImages) =>
+              setImages(nextImages.slice(0, MAX_PRODUCT_IMAGES))
+            }
+            maxImages={MAX_PRODUCT_IMAGES}
             gradient={gradient}
             onGradientChange={setGradient}
-            aspect={5 / 4}
+            aspect={4 / 5}
           />
 
           <div className="flex items-center justify-end gap-3 pt-1">

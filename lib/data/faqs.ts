@@ -27,7 +27,7 @@ export const FAQS: FAQ[] = [
     category: "teslimat",
     question: "Gemlik dışına teslimat yapıyor musunuz?",
     answer:
-      "Gemlik içi özenli elden teslimat veriyoruz. Bursa merkez ve çevre ilçeler için anlaşmalı kuryelerimizle çalışıyoruz; ayrıntı için WhatsApp&apos;tan bilgi alabilirsiniz.",
+      "Gemlik içi özenli elden teslimat veriyoruz. Şehir dışı gönderimler için anlaşmalı kargo seçeneği bulunur; ayrıntı için WhatsApp&apos;tan bilgi alabilirsiniz.",
   },
   {
     category: "teslimat",

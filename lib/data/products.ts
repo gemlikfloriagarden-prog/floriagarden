@@ -18,6 +18,8 @@ export type Product = {
   gradient: string;
   /** Yüklenen gerçek görsel (WebP data URL veya URL) */
   image?: string;
+  /** Ürün galerisindeki gerçek görseller. İlk görsel ana görsel olarak kullanılır. */
+  images?: string[];
   /** Galeride birden fazla "görsel" simülasyonu için ek gradientler */
   galleryGradients?: string[];
   /** Bu ürünle iyi giden ürün ID'leri */

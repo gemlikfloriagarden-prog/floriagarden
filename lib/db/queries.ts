@@ -28,6 +28,38 @@ const s = (v: unknown): string => (v == null ? "" : String(v));
 const n = (v: unknown): number => (v == null ? 0 : Number(v));
 const opt = (v: unknown): string | undefined =>
   v == null || v === "" ? undefined : String(v);
+const MAX_PRODUCT_IMAGES = 4;
+
+function productImagesFromStored(value: unknown): string[] {
+  const raw = opt(value);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .filter((image): image is string => typeof image === "string")
+        .map((image) => image.trim())
+        .filter(Boolean)
+        .slice(0, MAX_PRODUCT_IMAGES);
+    }
+  } catch {
+    // Eski ürünlerde image alanı doğrudan tek görsel data URL/URL tutar.
+  }
+
+  return [raw].slice(0, MAX_PRODUCT_IMAGES);
+}
+
+function storedProductImages(product: Pick<AdminProduct, "image" | "images">) {
+  const images = (product.images?.length ? product.images : product.image ? [product.image] : [])
+    .map((image) => image.trim())
+    .filter(Boolean)
+    .slice(0, MAX_PRODUCT_IMAGES);
+
+  if (images.length === 0) return null;
+  if (images.length === 1) return images[0];
+  return JSON.stringify(images);
+}
 
 function toCategory(r: Row): AdminCategory {
   return {
@@ -40,6 +72,7 @@ function toCategory(r: Row): AdminCategory {
 }
 
 function toProduct(r: Row): AdminProduct {
+  const images = productImagesFromStored(r.image);
   return {
     id: s(r.id),
     slug: s(r.slug),
@@ -52,7 +85,8 @@ function toProduct(r: Row): AdminProduct {
     stock: (s(r.stock) || "var") as AdminProduct["stock"],
     badge: opt(r.badge),
     gradient: s(r.gradient),
-    image: opt(r.image),
+    image: images[0],
+    images: images.length ? images : undefined,
   };
 }
 
@@ -83,6 +117,12 @@ function toDeliveryStep(r: Row): DeliveryStep {
     title: s(r.title),
     text: s(r.text),
   };
+}
+
+function visibleDeliveryZones(rows: Row[]): DeliveryZone[] {
+  return rows
+    .map(toDeliveryZone)
+    .filter((zone) => !/bursa/i.test(`${zone.id} ${zone.name}`));
 }
 
 function toOrder(r: Row, items: OrderItem[] = []): Order {
@@ -264,11 +304,17 @@ export async function getDelivery(): Promise<{
       query<Row>("SELECT * FROM delivery_steps ORDER BY sort_order"),
     ]);
     return {
-      deliveryZones: zones.map(toDeliveryZone),
+      deliveryZones: visibleDeliveryZones(zones),
       deliveryProcess: steps.map(toDeliveryStep),
     };
   } catch {
-    return seedDelivery();
+    const seeded = seedDelivery();
+    return {
+      deliveryZones: seeded.deliveryZones.filter(
+        (zone) => !/bursa/i.test(`${zone.id} ${zone.name}`),
+      ),
+      deliveryProcess: seeded.deliveryProcess,
+    };
   }
 }
 
@@ -288,14 +334,23 @@ function publicImageUrl(
   kind: "product" | "category",
   id: string,
   image?: string,
+  index = 0,
 ): string | undefined {
   if (!image) return undefined;
   if (!image.startsWith("data:")) return image;
-  return `/api/media/${kind}/${encodeURIComponent(id)}`;
+  const suffix = kind === "product" && index > 0 ? `?i=${index}` : "";
+  return `/api/media/${kind}/${encodeURIComponent(id)}${suffix}`;
+}
+
+function publicProductImageUrls(id: string, storedImage: unknown): string[] {
+  return productImagesFromStored(storedImage)
+    .map((image, index) => publicImageUrl("product", id, image, index))
+    .filter((image): image is string => Boolean(image));
 }
 
 function toFullProduct(r: Row): Product {
   const id = s(r.id);
+  const images = publicProductImageUrls(id, r.image);
   return {
     id,
     slug: s(r.slug),
@@ -308,7 +363,8 @@ function toFullProduct(r: Row): Product {
     category: s(r.category),
     badge: opt(r.badge),
     gradient: s(r.gradient),
-    image: publicImageUrl("product", id, opt(r.image)),
+    image: images[0],
+    images: images.length ? images : undefined,
     galleryGradients: undefined,
     pairings: arr(r.pairings),
     dimensions: opt(r.dimensions),
@@ -438,6 +494,7 @@ export async function deleteCategory(slug: string) {
    ════════════════════════════════════════════════ */
 
 export async function createProduct(p: AdminProduct) {
+  const image = storedProductImages(p);
   await execute(
     "INSERT INTO products (id,slug,name,short_description,long_description,contents,price,category,badge,gradient,image,stock) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
     [
@@ -451,13 +508,14 @@ export async function createProduct(p: AdminProduct) {
       p.category,
       p.badge ?? null,
       p.gradient,
-      p.image ?? null,
+      image,
       p.stock,
     ],
   );
 }
 
 export async function updateProduct(id: string, p: AdminProduct) {
+  const image = storedProductImages(p);
   await execute(
     "UPDATE products SET slug=?, name=?, short_description=?, long_description=?, contents=?, price=?, category=?, badge=?, gradient=?, image=?, stock=? WHERE id=?",
     [
@@ -470,7 +528,7 @@ export async function updateProduct(id: string, p: AdminProduct) {
       p.category,
       p.badge ?? null,
       p.gradient,
-      p.image ?? null,
+      image,
       p.stock,
       id,
     ],

@@ -37,6 +37,8 @@ function seedProducts(): AdminProduct[] {
     stock: p.stock ?? "var",
     badge: p.badge,
     gradient: p.gradient,
+    image: p.image,
+    images: p.images,
   }));
 }
 
@@ -47,7 +49,6 @@ const seedGeneralCodes: GeneralCode[] = [];
 const seedDeliveryZones: DeliveryZone[] = [
   { id: "zone-gemlik-merkez", name: "Gemlik Merkez", eta: "60 — 120 dk", fee: "Ücretsiz", note: "100 ₺ üzeri siparişlerde" },
   { id: "zone-gemlik-cevresi", name: "Gemlik Çevresi", eta: "120 — 180 dk", fee: "75 ₺", note: "Köy yerleşimleri dâhil" },
-  { id: "zone-bursa-merkez", name: "Bursa Merkez", eta: "Aynı gün", fee: "150 ₺", note: "17:00 öncesi siparişler" },
   { id: "zone-cevre-ilceler", name: "Çevre İlçeler", eta: "1 — 2 iş günü", fee: "Mesafeye göre", note: "Anlaşmalı kurye" },
 ];
 

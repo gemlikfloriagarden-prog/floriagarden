@@ -7,7 +7,7 @@ export type CartItem = {
   /** Hediye kartı notu */
   cardNote?: string;
   /** Teslimat bölgesi */
-  deliveryRegion?: "gemlik" | "bursa" | "sehir-disi";
+  deliveryRegion?: "gemlik" | "sehir-disi";
   /** Teslimat günü (ISO tarih) */
   deliveryDate?: string;
   /** Teslimat saat aralığı */

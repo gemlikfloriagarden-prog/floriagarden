@@ -33,6 +33,8 @@ export type AdminProduct = {
   gradient: string;
   /** Yüklenen görsel (WebP data URL) — varsa gradient yerine kullanılır */
   image?: string;
+  /** Ürün galerisindeki görseller. İlk görsel ana görsel olarak kullanılır. */
+  images?: string[];
 };
 
 /** Üyeye özel üretilen kod — hem indirim hem takip için */

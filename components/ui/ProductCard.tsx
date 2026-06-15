@@ -31,7 +31,7 @@ export default function ProductCard({ product, index }: Props) {
   return (
     <article className="group relative h-full flex flex-col overflow-hidden rounded-2xl bg-white group-hover:bg-bordo hover:bg-bordo border border-rose-gold/20 hover:border-bordo shadow-soft hover:shadow-card transition-[transform,background-color,border-color] duration-300 hover:scale-[1.02]">
       {/* Görsel — botanik lookbook */}
-      <div className="relative aspect-[4/5] overflow-hidden">
+      <div className="relative aspect-[3/4] overflow-hidden sm:aspect-[4/5]">
         <Link
           href={`/urun/${product.slug}`}
           className="block absolute inset-0"
@@ -45,7 +45,7 @@ export default function ProductCard({ product, index }: Props) {
                 alt={product.name}
                 loading="lazy"
                 decoding="async"
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover object-center"
               />
             ) : (
               <BotanicalArt seed={product.id} label={product.name} />

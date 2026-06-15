@@ -11,7 +11,6 @@ const SLOT_LABELS: Record<string, string> = {
 function regionLabel(item: CartItem): string | null {
   if (!item.deliveryRegion) return null;
   if (item.deliveryRegion === "gemlik") return "Gemlik içi";
-  if (item.deliveryRegion === "bursa") return "Bursa";
   return `Şehir dışı${item.deliveryCity ? ` · ${item.deliveryCity}` : " (kargo)"}`;
 }
 

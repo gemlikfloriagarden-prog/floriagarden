@@ -15,6 +15,7 @@ import { formatPrice } from "@/lib/utils/format";
 import { whatsappLink } from "@/lib/constants";
 import { getAverageRating } from "@/lib/data/reviews";
 import type { Product } from "@/lib/data/products";
+import type { DeliveryRegion } from "./DeliverySchedule";
 
 type Props = {
   product: Product;
@@ -24,9 +25,7 @@ export default function ProductDetailClient({ product }: Props) {
   const { addItem, openDrawer } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [cardNote, setCardNote] = useState("");
-  const [region, setRegion] = useState<"gemlik" | "bursa" | "sehir-disi">(
-    "gemlik",
-  );
+  const [region, setRegion] = useState<DeliveryRegion>("gemlik");
   const [city, setCity] = useState("");
   const [date, setDate] = useState("");
   const [slot, setSlot] = useState("12-15");
@@ -98,6 +97,7 @@ export default function ProductDetailClient({ product }: Props) {
           primaryGradient={product.gradient}
           galleryGradients={product.galleryGradients}
           image={product.image}
+          images={product.images}
         />
       </div>
 
@@ -244,10 +244,10 @@ export default function ProductDetailClient({ product }: Props) {
           <Truck size={20} strokeWidth={1.6} className="text-bordo flex-shrink-0 mt-0.5" />
           <div className="flex flex-col gap-1 text-sm">
             <span className="text-coffee font-medium">
-              Gemlik &amp; Bursa aynı gün · Şehir dışına kargo
+              Gemlik içi aynı gün · Şehir dışına kargo
             </span>
             <span className="text-coffee/65 text-xs leading-relaxed">
-              Gemlik ve Bursa içi 17:00 öncesi siparişler aynı gün teslim edilir.
+              Gemlik içi 17:00 öncesi siparişler aynı gün teslim edilir.
               Türkiye geneline anlaşmalı kargoyla 1–3 iş günü içinde, takip
               numaralı gönderim yapılır.
             </span>

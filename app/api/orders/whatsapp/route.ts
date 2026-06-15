@@ -42,8 +42,8 @@ function quantity(value: unknown): number {
 
 function deliveryRegionLabel(region: string): string {
   if (region === "gemlik") return "Gemlik içi";
-  if (region === "bursa") return "Bursa";
   if (region === "sehir-disi") return "Şehir dışı / kargo";
+  if (region === "bursa") return "Şehir dışı / kargo";
   return "WhatsApp üzerinden netleşecek";
 }
 

@@ -10,7 +10,7 @@ const SLOTS = [
   { id: "18-22", label: "18:00 — 22:00" },
 ];
 
-export type DeliveryRegion = "gemlik" | "bursa" | "sehir-disi";
+export type DeliveryRegion = "gemlik" | "sehir-disi";
 
 const REGIONS: {
   id: DeliveryRegion;
@@ -18,7 +18,6 @@ const REGIONS: {
   note: string;
 }[] = [
   { id: "gemlik", label: "Gemlik içi", note: "Aynı gün, ısı kontrollü kuryeyle elden teslim." },
-  { id: "bursa", label: "Bursa", note: "Aynı gün teslimat — 17:00 öncesi siparişlerde." },
   { id: "sehir-disi", label: "Şehir dışı", note: "Anlaşmalı kargoyla 1–3 iş günü, takip numaralı gönderim." },
 ];
 
@@ -63,7 +62,7 @@ export default function DeliverySchedule({
           <MapPin size={13} strokeWidth={1.7} />
           Teslimat Bölgesi
         </span>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {REGIONS.map((r) => (
             <button
               key={r.id}

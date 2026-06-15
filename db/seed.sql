@@ -20,8 +20,7 @@ ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), grad
 INSERT INTO delivery_zones (id,name,eta,fee,note,sort_order) VALUES
  ('zone-gemlik-merkez','Gemlik Merkez','60 — 120 dk','Ücretsiz','100 ₺ üzeri siparişlerde',1),
  ('zone-gemlik-cevresi','Gemlik Çevresi','120 — 180 dk','75 ₺','Köy yerleşimleri dâhil',2),
- ('zone-bursa-merkez','Bursa Merkez','Aynı gün','150 ₺','17:00 öncesi siparişler',3),
- ('zone-cevre-ilceler','Çevre İlçeler','1 — 2 iş günü','Mesafeye göre','Anlaşmalı kurye',4)
+ ('zone-cevre-ilceler','Çevre İlçeler','1 — 2 iş günü','Mesafeye göre','Anlaşmalı kurye',3)
 ON DUPLICATE KEY UPDATE name=VALUES(name), eta=VALUES(eta), fee=VALUES(fee), note=VALUES(note), sort_order=VALUES(sort_order);
 
 INSERT INTO delivery_steps (id,icon,title,text,sort_order) VALUES
