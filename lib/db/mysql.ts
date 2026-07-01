@@ -32,6 +32,13 @@ export function getPool(): mysql.Pool {
       dateStrings: true,
       // Alastyr uzak bağlantısında gerekebilir; sorun olursa kaldırırız.
       enableKeepAlive: true,
+      // Uzak (Alastyr) sunucu yavaş/erişilemezse 10 sn takılmak yerine hızlı
+      // başarısız ol → sayfa fallback'e düşer, ziyaretçi beklemede kalmaz.
+      connectTimeout: 8000,
+      // Serverless'te boşta kalan bağlantıları geri dönüştür (kopuk bağlantı
+      // üzerinden sorgu çalıştırıp takılmayı önler).
+      idleTimeout: 60000,
+      maxIdle: Number(process.env.DB_CONNECTION_LIMIT ?? 8),
     });
   }
   return global.__floriaPool;

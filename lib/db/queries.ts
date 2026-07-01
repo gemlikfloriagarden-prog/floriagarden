@@ -411,6 +411,77 @@ function publicProductImageUrls(id: string, storedImage: unknown): string[] {
     .filter((image): image is string => Boolean(image));
 }
 
+/**
+ * LİSTE için ana görsel URL'si — base64'ün TAMAMINI çekmeden.
+ * Liste sorgusu `LEFT(image,512) AS image_head` seçer; burada sadece görselin
+ * TÜRÜNÜ (base64 mı, harici URL mi, boş mu) anlayıp uygun URL'yi döneriz.
+ * Base64 ise gerçek veri /api/media üzerinden ayrıca (ve CDN önbellekli) gelir.
+ */
+function listMainImageUrl(id: string, head: unknown): string | undefined {
+  const h = String(head ?? "").trim();
+  if (!h) return undefined;
+  // Tek base64 (data:) veya çoklu base64 JSON dizisi ([") → media route (ana görsel)
+  if (h.startsWith("data:") || h.startsWith("[")) {
+    return `/api/media/product/${encodeURIComponent(id)}`;
+  }
+  // Harici URL / göreli yol (kısa, 512 karaktere sığar) → doğrudan kullan
+  return h;
+}
+
+/** LİSTE ürünü — kart için yeterli alanlar; ağır base64 çekilmez. */
+function toListProduct(r: Row): Product {
+  const id = s(r.id);
+  const main = listMainImageUrl(id, r.image_head);
+  const settings = parseImageSettings(r.image_settings);
+  return {
+    id,
+    slug: s(r.slug),
+    name: s(r.name),
+    shortDescription: s(r.short_description),
+    longDescription: s(r.long_description),
+    contents: arr(r.contents),
+    careTips: arr(r.care_tips),
+    price: n(r.price),
+    category: s(r.category),
+    badge: opt(r.badge),
+    gradient: s(r.gradient),
+    image: main,
+    images: main ? [main] : undefined,
+    imageSettings: settings.length ? settings : undefined,
+    galleryGradients: undefined,
+    pairings: arr(r.pairings),
+    dimensions: opt(r.dimensions),
+    stock: (s(r.stock) || "var") as Product["stock"],
+  };
+}
+
+/** Liste sorgusu için sütun listesi — ağır `image` yerine ilk 512 karakter. */
+async function listProductColumns(): Promise<string> {
+  const hasSettings = await ensureProductImageSettingsColumn();
+  return [
+    "id",
+    "slug",
+    "name",
+    "short_description",
+    "long_description",
+    "contents",
+    "care_tips",
+    "price",
+    "category",
+    "badge",
+    "gradient",
+    hasSettings ? "image_settings" : null,
+    "pairings",
+    "dimensions",
+    "stock",
+    "sort_order",
+    "created_at",
+    "LEFT(image, 512) AS image_head",
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
 function toFullProduct(r: Row): Product {
   const id = s(r.id);
   const images = publicProductImageUrls(id, r.image);
@@ -462,10 +533,11 @@ export async function getPublicCategories(): Promise<Category[]> {
 
 export async function getPublicProducts(): Promise<Product[]> {
   try {
+    const cols = await listProductColumns();
     const rows = await query<Row>(
-      "SELECT * FROM products ORDER BY sort_order, created_at DESC",
+      `SELECT ${cols} FROM products ORDER BY sort_order, created_at DESC`,
     );
-    return rows.map(toFullProduct);
+    return rows.map(toListProduct);
   } catch {
     return PRODUCTS;
   }
@@ -475,11 +547,12 @@ export async function getPublicProductsByCategory(
   category: string,
 ): Promise<Product[]> {
   try {
+    const cols = await listProductColumns();
     const rows = await query<Row>(
-      "SELECT * FROM products WHERE category = ? ORDER BY sort_order, created_at DESC",
+      `SELECT ${cols} FROM products WHERE category = ? ORDER BY sort_order, created_at DESC`,
       [category],
     );
-    return rows.map(toFullProduct);
+    return rows.map(toListProduct);
   } catch {
     return PRODUCTS.filter((product) => product.category === category);
   }
