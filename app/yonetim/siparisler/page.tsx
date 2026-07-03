@@ -16,6 +16,7 @@ import {
   MapPin,
   X,
   Printer,
+  Flower2,
 } from "lucide-react";
 import { useAdminData } from "@/components/admin/AdminDataProvider";
 import {
@@ -787,20 +788,48 @@ export default function SiparislerPage() {
 
             {/* Ürünler */}
             <div className="rounded-2xl border border-rose-gold/15 overflow-hidden">
-              {detail.items.map((it, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between px-4 py-2.5 text-sm border-b border-rose-gold/10 last:border-0"
-                >
-                  <span className="text-coffee">
-                    {it.name}{" "}
-                    <span className="text-coffee/45">× {it.quantity}</span>
-                  </span>
-                  <span className="text-coffee/70">
-                    {formatPrice(it.price * it.quantity)}
-                  </span>
-                </div>
-              ))}
+              {detail.items.map((it, i) => {
+                const product = it.productId
+                  ? data.products.find((p) => p.id === it.productId)
+                  : undefined;
+                const isDiscount = it.price < 0;
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 px-3 sm:px-4 py-2.5 text-sm border-b border-rose-gold/10 last:border-0"
+                  >
+                    {!isDiscount && (
+                      <span
+                        className={`relative h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0 overflow-hidden rounded-xl border border-rose-gold/20 ${
+                          product?.image
+                            ? ""
+                            : `bg-gradient-to-br ${product?.gradient ?? "from-rose-gold/25 to-bordo/15"}`
+                        }`}
+                      >
+                        {product?.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={product.image}
+                            alt={it.name}
+                            className="absolute inset-0 h-full w-full object-cover object-center"
+                          />
+                        ) : (
+                          <span className="absolute inset-0 flex items-center justify-center text-bordo/50">
+                            <Flower2 size={20} strokeWidth={1.5} />
+                          </span>
+                        )}
+                      </span>
+                    )}
+                    <span className="flex-1 min-w-0 text-coffee">
+                      <span className="line-clamp-2 align-middle">{it.name}</span>{" "}
+                      <span className="text-coffee/45">× {it.quantity}</span>
+                    </span>
+                    <span className="flex-shrink-0 text-coffee/70 whitespace-nowrap">
+                      {formatPrice(it.price * it.quantity)}
+                    </span>
+                  </div>
+                );
+              })}
               <div className="flex items-center justify-between px-4 py-3 bg-cream-soft">
                 <span className="text-xs uppercase tracking-wider2 text-coffee/55">
                   Toplam
