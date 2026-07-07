@@ -1,4 +1,4 @@
-import { query, execute } from "./mysql";
+import { query, execute, type SqlParam } from "./mysql";
 import { seedDelivery } from "@/lib/admin/seed";
 import { CATEGORIES } from "@/lib/data/categories";
 import { PRODUCTS, DEFAULT_IMAGE_SETTING } from "@/lib/data/products";
@@ -131,6 +131,29 @@ function toProduct(r: Row): AdminProduct {
   };
 }
 
+/** Admin LİSTE ürünü — panel hızlı açılsın diye base64 çekmez; görsel /api/media. */
+function toAdminProductLight(r: Row): AdminProduct {
+  const id = s(r.id);
+  const main = listMainImageUrl(id, r.image_head);
+  const settings = parseImageSettings(r.image_settings);
+  return {
+    id,
+    slug: s(r.slug),
+    name: s(r.name),
+    shortDescription: s(r.short_description),
+    longDescription: s(r.long_description),
+    contents: arr(r.contents),
+    price: n(r.price),
+    category: s(r.category),
+    stock: (s(r.stock) || "var") as AdminProduct["stock"],
+    badge: opt(r.badge),
+    gradient: s(r.gradient),
+    image: main,
+    images: main ? [main] : undefined,
+    imageSettings: settings.length ? settings : undefined,
+  };
+}
+
 function toGeneralCode(r: Row): GeneralCode {
   return {
     code: s(r.code),
@@ -258,6 +281,9 @@ async function ensureOrdersEmailColumn(): Promise<boolean> {
    ════════════════════════════════════════════════ */
 
 export async function getAdminData(): Promise<AdminData> {
+  // Ürünleri base64 görselsiz (hafif) çek → panel çok daha hızlı açılır.
+  // Görseller /api/media üzerinden gelir; düzenlemede tam görsel ayrıca çekilir.
+  const productCols = await listProductColumns();
   const [
     categories,
     products,
@@ -270,7 +296,9 @@ export async function getAdminData(): Promise<AdminData> {
     orderItemRows,
   ] = await Promise.all([
     query<Row>("SELECT * FROM categories ORDER BY sort_order, name"),
-    query<Row>("SELECT * FROM products ORDER BY sort_order, created_at DESC"),
+    query<Row>(
+      `SELECT ${productCols} FROM products ORDER BY sort_order, created_at DESC`,
+    ),
     query<Row>("SELECT * FROM members ORDER BY joined_at DESC"),
     query<Row>("SELECT * FROM member_codes ORDER BY created_at DESC"),
     query<Row>("SELECT * FROM general_codes ORDER BY created_at DESC"),
@@ -321,7 +349,7 @@ export async function getAdminData(): Promise<AdminData> {
 
   return {
     categories: categories.map(toCategory),
-    products: products.map(toProduct),
+    products: products.map(toAdminProductLight),
     members,
     generalCodes: generalCodes.map(toGeneralCode),
     deliveryZones: zones.map(toDeliveryZone),
@@ -353,6 +381,14 @@ export async function getProductBySlug(
 ): Promise<AdminProduct | null> {
   const rows = await query<Row>("SELECT * FROM products WHERE slug = ? LIMIT 1", [
     slug,
+  ]);
+  return rows[0] ? toProduct(rows[0]) : null;
+}
+
+/** Tek ürünün TAM hali (base64 görsellerle) — admin düzenleme formu için. */
+export async function getAdminProduct(id: string): Promise<AdminProduct | null> {
+  const rows = await query<Row>("SELECT * FROM products WHERE id = ? LIMIT 1", [
+    id,
   ]);
   return rows[0] ? toProduct(rows[0]) : null;
 }
@@ -675,46 +711,51 @@ export async function createProduct(p: AdminProduct) {
 }
 
 export async function updateProduct(id: string, p: AdminProduct) {
-  const image = storedProductImages(p);
   const hasSettings = await ensureProductImageSettingsColumn();
-  if (hasSettings) {
-    await execute(
-      "UPDATE products SET slug=?, name=?, short_description=?, long_description=?, contents=?, price=?, category=?, badge=?, gradient=?, image=?, image_settings=?, stock=? WHERE id=?",
-      [
-        p.slug,
-        p.name,
-        p.shortDescription,
-        p.longDescription ?? "",
-        JSON.stringify(p.contents ?? []),
-        p.price,
-        p.category,
-        p.badge ?? null,
-        p.gradient,
-        image,
-        storedImageSettings(p.imageSettings),
-        p.stock,
-        id,
-      ],
-    );
-    return;
+
+  // Görseller sadece /api/media placeholder ise (tam base64 yüklenmemiş ya da
+  // hiç değişmemiş) → image kolonuna DOKUNMA, DB'deki mevcut görseli koru.
+  // Böylece admin panel hafif yüklense bile kaydetmede görsel kaybı olmaz.
+  const imgs = (p.images ?? []).map((i) => i.trim()).filter(Boolean);
+  const onlyPlaceholders =
+    imgs.length > 0 && imgs.every((i) => i.startsWith("/api/media"));
+
+  const sets = [
+    "slug=?",
+    "name=?",
+    "short_description=?",
+    "long_description=?",
+    "contents=?",
+    "price=?",
+    "category=?",
+    "badge=?",
+    "gradient=?",
+  ];
+  const vals: SqlParam[] = [
+    p.slug,
+    p.name,
+    p.shortDescription,
+    p.longDescription ?? "",
+    JSON.stringify(p.contents ?? []),
+    p.price,
+    p.category,
+    p.badge ?? null,
+    p.gradient,
+  ];
+
+  if (!onlyPlaceholders) {
+    sets.push("image=?");
+    vals.push(storedProductImages(p));
   }
-  await execute(
-    "UPDATE products SET slug=?, name=?, short_description=?, long_description=?, contents=?, price=?, category=?, badge=?, gradient=?, image=?, stock=? WHERE id=?",
-    [
-      p.slug,
-      p.name,
-      p.shortDescription,
-      p.longDescription ?? "",
-      JSON.stringify(p.contents ?? []),
-      p.price,
-      p.category,
-      p.badge ?? null,
-      p.gradient,
-      image,
-      p.stock,
-      id,
-    ],
-  );
+  if (hasSettings) {
+    sets.push("image_settings=?");
+    vals.push(storedImageSettings(p.imageSettings));
+  }
+  sets.push("stock=?");
+  vals.push(p.stock);
+
+  vals.push(id);
+  await execute(`UPDATE products SET ${sets.join(", ")} WHERE id=?`, vals);
 }
 
 export async function deleteProduct(id: string) {

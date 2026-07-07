@@ -94,9 +94,30 @@ export default function UrunlerPage() {
     setLongDescription(p.longDescription ?? "");
     setContents((p.contents ?? []).join("\n"));
     setGradient(p.gradient);
+    // Panel hafif yüklendiği için görsel şimdilik /api/media placeholder'ı.
     setImages(productImages(p));
     setImageSettings(p.imageSettings ?? []);
     setFormOpen(true);
+
+    // Bu ürünün TAM görsellerini (base64) arka planda getir; düzenleme doğru
+    // çalışsın. Kullanıcı bu sırada yeni görsel yüklediyse üzerine yazma.
+    fetch(`/api/admin/product/${p.id}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (!j?.product) return;
+        setImages((cur) => {
+          const stillPlaceholder =
+            cur.length === 0 ||
+            cur.every((i) => i.startsWith("/api/media"));
+          return stillPlaceholder ? productImages(j.product) : cur;
+        });
+        setImageSettings((cur) =>
+          cur.length === 0 ? j.product.imageSettings ?? [] : cur,
+        );
+      })
+      .catch(() => {
+        /* tam görsel gelmezse placeholder kalır; kayıt guard'ı görseli korur */
+      });
   };
 
   const onSubmit = (e: FormEvent) => {
