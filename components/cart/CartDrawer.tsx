@@ -6,7 +6,6 @@ import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
 import { useCart } from "./CartProvider";
 import CouponInput from "./CouponInput";
 import CartItemDetails from "./CartItemDetails";
-import WhatsAppCheckoutButton from "./WhatsAppCheckoutButton";
 import FloralPlaceholder from "@/components/ui/FloralPlaceholder";
 import Button from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils/format";
@@ -193,20 +192,16 @@ export default function CartDrawer() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <WhatsAppCheckoutButton
-                    className="w-full"
-                    onDone={closeDrawer}
-                  />
                   <Link href="/sepet" onClick={closeDrawer}>
-                    <Button variant="outline" size="md" className="w-full">
-                      Sepeti Görüntüle
+                    <Button variant="gold" size="lg" className="w-full">
+                      Siparişi Tamamla
                     </Button>
                   </Link>
                 </div>
 
                 <p className="text-[0.7rem] text-coffee/45 text-center leading-relaxed">
-                  Sipariş tamamlandıktan sonra WhatsApp üzerinden teslimat
-                  bölgesi, gönderici bilgileri ve ödeme yöntemi netleşir.
+                  Sipariş adımında ad, telefon ve teslimat adresi bilgilerinizi
+                  girersiniz; ardından WhatsApp üzerinden onaylanır.
                 </p>
               </div>
             )}

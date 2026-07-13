@@ -1,15 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Trash2, Plus, Minus, ShoppingBag, Truck, ShieldCheck } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingBag, Truck, ShieldCheck, User, Phone, MapPin } from "lucide-react";
 import Button from "@/components/ui/Button";
 import FloralPlaceholder from "@/components/ui/FloralPlaceholder";
 import CouponInput from "./CouponInput";
 import CartItemDetails from "./CartItemDetails";
 import WhatsAppCheckoutButton from "./WhatsAppCheckoutButton";
 import { useCart } from "./CartProvider";
-import { formatPrice } from "@/lib/utils/format";
+import { formatPrice, formatTrPhone } from "@/lib/utils/format";
 
 export default function CartPageClient() {
   const {
@@ -23,6 +24,13 @@ export default function CartPageClient() {
     removeItem,
     clear,
   } = useCart();
+
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  // Adres: üründe girildiyse ön-doldur (yine düzenlenebilir + zorunlu)
+  const [address, setAddress] = useState(
+    () => state.items.find((i) => i.deliveryAddress)?.deliveryAddress ?? "",
+  );
 
   if (state.items.length === 0) {
     return (
@@ -157,9 +165,53 @@ export default function CartPageClient() {
 
           <CouponInput variant="dark" />
 
+          {/* Zorunlu teslimat bilgileri */}
+          <div className="flex flex-col gap-3 pt-3 border-t border-rose-gold/15">
+            <span className="text-xs uppercase tracking-wider2 text-rose-goldDark">
+              Teslimat Bilgileri
+            </span>
+
+            <div className="relative">
+              <User size={15} strokeWidth={1.7} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-goldDark" />
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Ad Soyad"
+                autoComplete="name"
+                className="w-full rounded-2xl bg-white border border-rose-gold/25 pl-10 pr-4 h-12 text-sm text-coffee placeholder:text-coffee/40 focus:outline-none focus:border-bordo transition-colors"
+              />
+            </div>
+
+            <div className="relative">
+              <Phone size={15} strokeWidth={1.7} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-goldDark" />
+              <input
+                type="tel"
+                inputMode="numeric"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(formatTrPhone(e.target.value))}
+                placeholder="0 (5XX) XXX XX XX"
+                autoComplete="tel"
+                className="w-full rounded-2xl bg-white border border-rose-gold/25 pl-10 pr-4 h-12 text-sm text-coffee placeholder:text-coffee/40 focus:outline-none focus:border-bordo transition-colors"
+              />
+            </div>
+
+            <div className="relative">
+              <MapPin size={15} strokeWidth={1.7} className="absolute left-3.5 top-3.5 text-rose-goldDark" />
+              <textarea
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                rows={3}
+                placeholder="Teslimat adresi (alıcı adı, mahalle, sokak, no)"
+                className="w-full rounded-2xl bg-white border border-rose-gold/25 pl-10 pr-4 py-3 text-sm text-coffee placeholder:text-coffee/40 focus:outline-none focus:border-bordo transition-colors resize-none"
+              />
+            </div>
+          </div>
+
           <WhatsAppCheckoutButton
             label="Siparişi Tamamla"
             className="w-full"
+            customer={{ name: customerName, phone: customerPhone, address }}
           />
 
           <Link href="/urunler">

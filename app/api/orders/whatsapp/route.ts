@@ -193,14 +193,28 @@ export async function POST(req: Request) {
         ]
       : orderItems;
 
+  // Zorunlu müşteri bilgileri — eksik/geçersizse sipariş OLUŞTURULMAZ (panele düşmez).
+  const cName = text(body?.customer?.name);
+  const cPhone = text(body?.customer?.phone);
+  const cAddress =
+    text(body?.customer?.address) ||
+    text(first?.deliveryAddress) ||
+    text(first?.deliveryCity);
+  const cPhoneDigits = cPhone.replace(/\D/g, "");
+  if (!cName || cPhoneDigits.length !== 11 || !cAddress) {
+    return NextResponse.json(
+      { error: "Ad Soyad, telefon (0 5XX...) ve teslimat adresi zorunludur." },
+      { status: 400 },
+    );
+  }
+
   const memberId = getMemberId();
   const member = memberId ? await getMemberById(memberId) : null;
   const firstRegion = text(first?.deliveryRegion);
   const deliveryZone = deliveryRegionLabel(firstRegion);
-  const deliveryAddress =
-    text(first?.deliveryAddress) || text(first?.deliveryCity);
-  const customerName = member?.name || "WhatsApp müşterisi";
-  const customerPhone = member?.phone || "";
+  const deliveryAddress = cAddress;
+  const customerName = cName;
+  const customerPhone = cPhone;
   const customerEmail = member?.email || undefined;
   const customerKnown = Boolean(member);
 
@@ -229,9 +243,9 @@ export async function POST(req: Request) {
     customerName,
     customerPhone,
     customerEmail,
-    recipientName: customerKnown ? customerName : "WhatsApp üzerinden netleşecek",
-    recipientPhone: customerKnown ? customerPhone : "",
-    address: deliveryAddress || "WhatsApp üzerinden netleşecek",
+    recipientName: customerName,
+    recipientPhone: customerPhone,
+    address: deliveryAddress,
     surprise: false,
     items,
     deliveryZone,

@@ -7,10 +7,14 @@ import Button from "@/components/ui/Button";
 import { useCart } from "./CartProvider";
 import { useToast } from "@/components/toast/ToastProvider";
 
+type Customer = { name: string; phone: string; address: string };
+
 type Props = {
   label?: string;
   className?: string;
   onDone?: () => void;
+  /** Zorunlu müşteri bilgileri (Ad Soyad, Telefon, Adres). */
+  customer: Customer;
 };
 
 type CheckoutResponse = {
@@ -24,6 +28,7 @@ export default function WhatsAppCheckoutButton({
   label = "Siparişi Tamamla",
   className,
   onDone,
+  customer,
 }: Props) {
   const router = useRouter();
   const { state, subtotal, discount, total, coupon, clear } = useCart();
@@ -32,6 +37,28 @@ export default function WhatsAppCheckoutButton({
 
   const submit = async () => {
     if (pending || state.items.length === 0) return;
+
+    // Zorunlu bilgi kontrolü — eksikse sipariş oluşturulmaz.
+    const name = customer.name.trim();
+    const address = customer.address.trim();
+    const phoneDigits = customer.phone.replace(/\D/g, "");
+    if (!name) {
+      toast({ title: "Ad Soyad gerekli", tone: "warning" });
+      return;
+    }
+    if (phoneDigits.length !== 11 || !phoneDigits.startsWith("05")) {
+      toast({
+        title: "Geçerli telefon girin",
+        description: "Örn. 0 (555) 555 55 55",
+        tone: "warning",
+      });
+      return;
+    }
+    if (!address) {
+      toast({ title: "Teslimat adresi gerekli", tone: "warning" });
+      return;
+    }
+
     setPending(true);
 
     try {
@@ -40,6 +67,7 @@ export default function WhatsAppCheckoutButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: state.items,
+          customer: { name, phone: customer.phone.trim(), address },
           coupon: coupon
             ? {
                 code: coupon.code,
